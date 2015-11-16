@@ -10,7 +10,7 @@ public class Main {
          */
 
         //Construct Hosts
-	    Host h1 = new Host(1);
+        Host h1 = new Host(1);
         Host h2 = new Host(2);
 
         //Construct Links
