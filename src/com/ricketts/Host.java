@@ -9,7 +9,7 @@ import java.util.Queue;
  */
 public class Host extends Node
 {
-    private Integer address;
+    private final Integer address;
     private Link link;
 
     private Queue<Flow> flowsToStart;
@@ -63,7 +63,7 @@ public class Host extends Node
          * If there are flows that have not started (i.e. flowsToStart isn't empty)
          * Then add the packets for them to the queue
          */
-        if(!flowsToStart.isEmpty())
+        while(!flowsToStart.isEmpty())
         {
             Flow flow = flowsToStart.remove();
             Collection<DataPacket> packetsToAdd = flow.generateDataPackets(numbGeneratedPackets);
@@ -75,33 +75,38 @@ public class Host extends Node
          * Process all received packets
          * This involves checking if they are an ACK or a DataPacket
          */
-        if(!packetsToProcess.isEmpty())
+        while(!packetsToProcess.isEmpty())
         {
             Packet packet = packetsToProcess.remove();
 
             if(packet instanceof ACKPacket)
             {
-                if(maxACKReceived < packet.getPackedId())
+                if(maxACKReceived < packet.getPacketId())
                 {
-                    maxACKReceived = packet.getPackedId();
+                    maxACKReceived = packet.getPacketId();
                 }
-                System.out.println("ACK packet " + packet.getPackedId() + " received at host " + address);
+                System.out.println("ACK packet " + packet.getPacketId() + " received at host " + address);
             }
-            else
+            else if(packet instanceof DataPacket)
             {
-                System.out.println("Data packet " + packet.getPackedId() + " recived at host " + address);
+                System.out.println("Data packet " + packet.getPacketId() + " received at host " + address);
                 //TODO Add analytics here
+
+                ACKPacket ackPacket = new ACKPacket(packet.getDestinationNode(), packet.getSourceNode(), numbGeneratedPackets);
+                numbGeneratedPackets++;
+
+                packetsToSend.add(ackPacket);
             }
 
         }
 
         /**
-         * Now we send packets if the packet id satisfies: n_t < n_a + w_t
+         * Now we send packets if the packet id n_t satisfies: n_t < n_a (maxACKReceived) + w_t
          * Then we send it along to the link to handle
          */
-        while( packetsToSend.peek().getPackedId() < maxACKReceived + windowSize)
+        while(!packetsToSend.isEmpty() && packetsToSend.peek().getPacketId() <= maxACKReceived + windowSize)
         {
-            System.out.println("About to send packet " + packetsToSend.peek().getPackedId());
+            System.out.println("About to send packet " + packetsToSend.peek().getPacketId());
             link.addPacket(packetsToSend.remove());
         }
 

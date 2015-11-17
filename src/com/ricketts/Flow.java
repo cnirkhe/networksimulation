@@ -30,6 +30,7 @@ public class Flow
     }
 
     public Node getFlowSource() {return flowSource;}
+    public Node getFlowDestination() {return flowDestination;}
 
     public LinkedList<DataPacket> generateDataPackets( Integer initalIndex )
     {

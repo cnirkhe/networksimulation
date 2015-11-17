@@ -14,9 +14,9 @@ public class Link
      */
     private final Integer linkRate;
     /**
-     * Measured in seconds
+     * Measured in milliseconds
      */
-    private final Double linkDelay;
+    private final Integer linkDelay;
     /**
      * Measured in bytes
      */
@@ -29,6 +29,9 @@ public class Link
      * This is a simplification that needs to be remedied
      */
     private Queue<Packet> packetBuffer;
+    /**
+     * The number of bits in the packet buffer currently
+     */
     private Integer packetBufferFill;
 
     public class PacketTimePair
@@ -48,7 +51,7 @@ public class Link
     private final Integer totalBitsTransmittable;
     private Integer bitsInTransmission;
 
-    public Link(Integer linkId, Integer linkRate, Double linkDelay, Integer linkBuffer, Node leftNode, Node rightNode)
+    public Link(Integer linkId, Integer linkRate, Integer linkDelay, Integer linkBuffer, Node leftNode, Node rightNode)
     {
         this.linkId = linkId;
         this.linkRate = linkRate;
@@ -62,7 +65,7 @@ public class Link
 
         currentlyTransmittingPackets = new LinkedList<>();
 
-        totalBitsTransmittable = (int)(linkRate * linkDelay);
+        totalBitsTransmittable = (linkRate * linkDelay / 1000);
         bitsInTransmission = 0;
     }
 
@@ -88,18 +91,20 @@ public class Link
         /**
          * If the time has come to move the packet to the other side of the link
          */
-        while( overallTime - currentlyTransmittingPackets.peek().time > linkDelay)
+        while(!currentlyTransmittingPackets.isEmpty() && overallTime - currentlyTransmittingPackets.peek().time >= linkDelay)
         {
             bitsInTransmission -= currentlyTransmittingPackets.peek().packet.getPacketSize();
+            System.out.println("Moving packet " + currentlyTransmittingPackets.peek().packet.getPacketId() + " out of link " + linkId);
             rightNode.receivePacket(currentlyTransmittingPackets.remove().packet);
         }
 
         /** Add packets if there is space on the link */
-        while(totalBitsTransmittable - bitsInTransmission > packetBuffer.peek().getPacketSize())
+        while(!packetBuffer.isEmpty() && totalBitsTransmittable - bitsInTransmission > packetBuffer.peek().getPacketSize())
         {
             PacketTimePair ptpair = new PacketTimePair(packetBuffer.remove(), overallTime);
             currentlyTransmittingPackets.add(ptpair);
             bitsInTransmission += ptpair.packet.getPacketSize();
+            System.out.println("Adding packet " + ptpair.packet.getPacketId() + " to link " + linkId);
         }
     }
 }
