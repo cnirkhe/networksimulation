@@ -92,6 +92,9 @@ public class Host extends Node
                 System.out.println("Data packet " + packet.getPacketId() + " received at host " + address);
                 //TODO Add analytics here
 
+                /**
+                 * Send an ACKPacket back
+                 */
                 ACKPacket ackPacket = new ACKPacket(packet.getDestinationNode(), packet.getSourceNode(), numbGeneratedPackets);
                 numbGeneratedPackets++;
 

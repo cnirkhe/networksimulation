@@ -2,14 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="f8003b91-19fc-4cc8-a784-96358b2f1a54" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/src/com/ricketts/RunSim.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/ricketts/ACKPacket.java" afterPath="$PROJECT_DIR$/src/com/ricketts/ACKPacket.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/ricketts/Flow.java" afterPath="$PROJECT_DIR$/src/com/ricketts/Flow.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/ricketts/Host.java" afterPath="$PROJECT_DIR$/src/com/ricketts/Host.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/ricketts/Link.java" afterPath="$PROJECT_DIR$/src/com/ricketts/Link.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/ricketts/Main.java" afterPath="$PROJECT_DIR$/src/com/ricketts/Main.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/src/com/ricketts/Packet.java" afterPath="$PROJECT_DIR$/src/com/ricketts/Packet.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="networksimulation.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -102,8 +95,8 @@
       <file leaf-file-name="Host.java" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/src/com/ricketts/Host.java">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.83928573">
-              <caret line="99" column="0" selection-start-line="99" selection-start-column="0" selection-end-line="99" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.64285713">
+              <caret line="95" column="41" selection-start-line="95" selection-start-column="41" selection-end-line="95" selection-end-column="41" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#894#895#0" expanded="true" />
@@ -133,7 +126,7 @@
         <entry file="file://$PROJECT_DIR$/src/com/ricketts/RunSim.java">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="39" column="35" selection-start-line="39" selection-start-column="35" selection-end-line="39" selection-end-column="35" />
+              <caret line="44" column="9" selection-start-line="44" selection-start-column="9" selection-end-line="44" selection-end-column="9" />
               <folding>
                 <element signature="imports" expanded="true" />
                 <element signature="e#934#1320#0" expanded="true" />
@@ -564,10 +557,18 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/src/com/ricketts/Node.java">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/src/com/ricketts/RunSim.java">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
-          <caret line="39" column="35" selection-start-line="39" selection-start-column="35" selection-end-line="39" selection-end-column="35" />
+          <caret line="44" column="9" selection-start-line="44" selection-start-column="9" selection-end-line="44" selection-end-column="9" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#934#1320#0" expanded="true" />
@@ -575,14 +576,6 @@
             <element signature="e#1606#1783#0" expanded="true" />
             <element signature="e#1782#1783#0" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/src/com/ricketts/Node.java">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="6" column="0" selection-start-line="6" selection-start-column="0" selection-end-line="6" selection-end-column="0" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -607,8 +600,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/src/com/ricketts/Host.java">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.83928573">
-          <caret line="99" column="0" selection-start-line="99" selection-start-column="0" selection-end-line="99" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.64285713">
+          <caret line="95" column="41" selection-start-line="95" selection-start-column="41" selection-end-line="95" selection-end-column="41" />
           <folding>
             <element signature="imports" expanded="true" />
             <element signature="e#894#895#0" expanded="true" />
