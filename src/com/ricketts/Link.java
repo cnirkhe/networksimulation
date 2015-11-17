@@ -8,68 +8,70 @@ import java.util.Queue;
  */
 public class Link implements Updatable
 {
+    private enum Direction {LEFT, RIGHT}
+
     private final Integer linkId;
-    /**
-     * Measured in bps
-     */
-    private final Integer linkRate;
-    /**
-     * Measured in milliseconds
-     */
-    private final Integer linkDelay;
-    /**
-     * Measured in bytes
-     */
-    private final Integer linkBuffer;
+    private final Integer linkRate;     // link rate in bits per second
+    private final Integer linkDelay;    // delay in milliseconds
+    private final Integer linkBuffer;   // buffer size in bytes
 
     private final Node leftNode, rightNode;
 
-    private enum Direction { LEFT, RIGHT }
-
-    private class PacketDirectionPair
+    // packets transmitting have a direction and start time associated with them
+    private class TransmittingPacket
     {
-        PacketDirectionPair(Packet packet, Direction direction)
-        {
-            this.packet = packet;
-            this.direction = direction;
-        }
-
         Packet packet;
         Direction direction;
+        Integer transmissionStartTime;
+
+        TransmittingPacket(
+            Packet packet,
+            Direction direction,
+            Integer transmissionStartTime)
+        {
+            this(packet, direction, transmissionStartTime)
+        }
     }
 
-    /**
-     * TODO This assumes that the links are one directional
-     * This is a simplification that needs to be remedied
-     */
-    private Queue<PacketDirectionPair> packetBuffer;
-    /**
-     * The number of bits in the packet buffer currently
-     */
-    private Integer packetBufferFill;
+    // packet buffers
+    private Queue<TransmittingPacket> leftPacketBuffer;
+    private Queue<TransmittingPacket> rightPacketBuffer;
+    
+    // remaining capacity on the buffers
+    private Integer leftBufferRemainingCapacity;
+    private Integer rightBufferRemainingCapacity;
 
-    private Queue<PacketDirectionPair> currentlyTransmittingPackets;
+    // Parker: I don't know what below variables are for. What is this for?
+    //         Please reply in the group chat
+    // private Queue<TransmittingPacket> currentlyTransmittingPackets;
+    // private final Integer totalBitsTransmittable;
+    // private Integer bitsInTransmission;
 
-    private final Integer totalBitsTransmittable;
-    private Integer bitsInTransmission;
-
-    public Link(Integer linkId, Integer linkRate, Integer linkDelay, Integer linkBuffer, Node leftNode, Node rightNode)
+    public Link(
+        Integer linkId,
+        Integer linkRate,
+        Integer linkDelay,
+        Integer linkBuffer,
+        Node leftNode,
+        Node rightNode)
     {
-        this.linkId = linkId;
-        this.linkRate = linkRate;
-        this.linkDelay = linkDelay;
-        this.linkBuffer = linkBuffer;
-        this.leftNode = leftNode;
-        this.rightNode = rightNode;
+        this(linkId, linkRate, linkDelay, linkBuffer, leftNode, rightNode);
 
-        packetBuffer = new LinkedList<>();
-        packetBufferFill = 0;
+        leftPacketBuffer = new LinkedList<>();
+        rightPacketBuffer = new LinkedList<>();
+        leftBufferRemainingCapacity = this.linkBuffer;
+        rightBufferRemainingCapacity = this.linkBuffer;
 
-        currentlyTransmittingPackets = new LinkedList<>();
-
-        totalBitsTransmittable = (linkRate * linkDelay / 1000);
-        bitsInTransmission = 0;
+        // Parker: Yeah I think we can just calculate these when needed. But
+        //         feel free to add them back in if needed
+        // currentlyTransmittingPackets = new LinkedList<>();
+        // totalBitsTransmittable = (linkRate * linkDelay / 1000);
+        // bitsInTransmission = 0;
     }
+
+
+    // Parker: I didn't touch anything below. Link update functionality goes
+    //         here. @Nailen you have that stuff right?
 
     /**
      * Check if the packet can fit in the buffer otherwise drop it
@@ -83,11 +85,11 @@ public class Link implements Updatable
         {
             if(sendingNode == leftNode)
             {
-                packetBuffer.add(new PacketDirectionPair(packet,Direction.RIGHT));
+                packetBuffer.add(new TransmittingPacket(packet,Direction.RIGHT));
             }
             else if(sendingNode == rightNode)
             {
-                packetBuffer.add(new PacketDirectionPair(packet, Direction.LEFT));
+                packetBuffer.add(new TransmittingPacket(packet, Direction.LEFT));
             }
             else //Not coming from a sending node
             {
@@ -106,7 +108,7 @@ public class Link implements Updatable
          */
         while(!currentlyTransmittingPackets.isEmpty() && overallTime - currentlyTransmittingPackets.peek().packet.getSendTime() >= linkDelay)
         {
-            PacketDirectionPair current = currentlyTransmittingPackets.peek();
+            TransmittingPacket current = currentlyTransmittingPackets.peek();
             bitsInTransmission -= current.packet.getPacketSize();
             System.out.println("Moving " + (current.packet instanceof ACKPacket ? "ACK" : "Data") + " packet " + current.packet.getPacketId() + " out of link " + linkId);
             if(current.direction == Direction.RIGHT) {
@@ -121,7 +123,7 @@ public class Link implements Updatable
         /** Add packets if there is space on the link */
         while(!packetBuffer.isEmpty() && totalBitsTransmittable - bitsInTransmission > packetBuffer.peek().packet.getPacketSize())
         {
-            PacketDirectionPair packetDirectionPair = packetBuffer.remove();
+            TransmittingPacket packetDirectionPair = packetBuffer.remove();
             packetDirectionPair.packet.setSendTime(overallTime);
             currentlyTransmittingPackets.add(packetDirectionPair);
             bitsInTransmission += packetDirectionPair.packet.getPacketSize();
