@@ -1,5 +1,8 @@
 package com.ricketts;
 
+import java.util.LinkedList;
+import java.util.List;
+
 public class Main {
 
     public static void main(String[] args)
@@ -14,7 +17,7 @@ public class Main {
         Host h2 = new Host(2);
 
         //Construct Links
-        Link l1 = new Link(1, 10 * 1024 * 1024, 10, 64 * 1024, h1, h2);
+        Link l1 = new Link(1, 10 * 1024 * 1024, 10, 8* 64 * 1024, h1, h2);
 
         //Add links to Host definitions
         h1.setLink(l1);
@@ -23,20 +26,21 @@ public class Main {
         //Construct Flow
         Flow f1 = new Flow(1, h1, h2, 20, 1.0);
 
-        //TODO Testing
+        List<Updateable> updateableList = new LinkedList<>();
+
+        updateableList.add(h1);
+        updateableList.add(h2);
+        updateableList.add(l1);
+
+        //Testing
         h1.addFlow(f1);
 
-        h1.update(5,0);
-        l1.update(5,0);
-        h2.update(5,0);
-
-        h1.update(5,5);
-        l1.update(5,5);
-        h2.update(5,5);
-
-        h1.update(5,10);
-        l1.update(5,10);
-        h2.update(5,10);
-
+        for(int i = 0; i < 4000; i+= 5)
+        {
+            for(Updateable updateable : updateableList)
+            {
+                updateable.update(5,i);
+            }
+        }
     }
 }
