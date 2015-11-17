@@ -26,7 +26,7 @@ public class Main {
         //TODO Testing
         h1.addFlow(f1);
 
-        for(int i = 0; i < 30; i+= 5)
+        for(int i = 0; i < 4000; i+= 5)
         {
             h1.update(5,i);
             h2.update(5,i);

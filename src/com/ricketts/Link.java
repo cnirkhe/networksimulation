@@ -87,7 +87,7 @@ public class Link
             }
             else if(sendingNode == rightNode)
             {
-                packetBuffer.add(new PacketDirectionPair(packet, Direction.RIGHT));
+                packetBuffer.add(new PacketDirectionPair(packet, Direction.LEFT));
             }
             else //Not coming from a sending node
             {
@@ -108,7 +108,7 @@ public class Link
         {
             PacketDirectionPair current = currentlyTransmittingPackets.peek();
             bitsInTransmission -= current.packet.getPacketSize();
-            System.out.println("Moving packet " + current.packet.getPacketId() + " out of link " + linkId);
+            System.out.println("Moving " + (current.packet instanceof ACKPacket ? "ACK" : "Data") + " packet " + current.packet.getPacketId() + " out of link " + linkId);
             if(current.direction == Direction.RIGHT) {
                 rightNode.receivePacket(currentlyTransmittingPackets.remove().packet);
             }
@@ -125,7 +125,7 @@ public class Link
             packetDirectionPair.packet.setSendTime(overallTime);
             currentlyTransmittingPackets.add(packetDirectionPair);
             bitsInTransmission += packetDirectionPair.packet.getPacketSize();
-            System.out.println("Adding packet " + packetDirectionPair.packet.getPacketId() + " to link " + linkId);
+            System.out.println("Adding " + (packetDirectionPair.packet instanceof ACKPacket ? "ACK" : "Data") + " packet " + packetDirectionPair.packet.getPacketId() + " to link " + linkId);
         }
     }
 }

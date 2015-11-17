@@ -100,7 +100,7 @@ public class Host extends Node
         while(!packetsToSend.isEmpty() && packetsToSend.peek().getPacketId() <= maxACKReceived + windowSize)
         {
             Packet packet = packetsToSend.peek();
-            System.out.println("About to send " + (packet instanceof ACKPacket ? "ACK" : "Data ") + " packet " + packet.getPacketId());
+            System.out.println("About to send " + (packet instanceof ACKPacket ? "ACK" : "Data") + " packet " + packet.getPacketId());
             link.addPacket(packet, this);
             packetsToSend.remove();
         }
