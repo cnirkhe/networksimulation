@@ -5,32 +5,29 @@ package com.ricketts;
  */
 public abstract class Packet
 {
-    /**
-     * Measured in bytes
-     */
-    private final Integer packetSize;
     private final Integer packetId;
+    private final Integer packetSize;   // packet size in bytes
     private final Node sourceNode;
     private final Node destinationNode;
 
-    public Packet(Integer packetSize, Flow parentFlow, Integer packedId)
+    public Packet(Integer packedId, Integer packetSize, Flow parentFlow)
     {
-        this(packetSize,
-            packedId,
+        this(packedId,
+            packetSize,
             parentFlow.getFlowSource(),
             parentFlow.getFlowDestination());
     }
 
     public Packet(
+        Integer packetId,
         Integer packetSize,
         Node sourceNode,
-        Node destinationNode,
-        Integer packetId)
+        Node destinationNode)
     {
-        this(packetSize,
+        this(packetId,
+            packetSize,
             sourceNode,
-            destinationNode,
-            packetId);
+            destinationNode);
     }
 
     public Integer getPacketId()
