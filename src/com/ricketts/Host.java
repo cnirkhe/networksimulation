@@ -110,7 +110,7 @@ public class Host extends Node
         while(!packetsToSend.isEmpty() && packetsToSend.peek().getPacketId() <= maxACKReceived + windowSize)
         {
             System.out.println("About to send packet " + packetsToSend.peek().getPacketId());
-            link.addPacket(packetsToSend.remove());
+            link.addPacket(packetsToSend.remove(), this);
         }
 
     }
