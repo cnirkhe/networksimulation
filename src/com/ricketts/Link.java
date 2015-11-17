@@ -75,7 +75,7 @@ public class Link
      * Check if the packet can fit in the buffer otherwise drop it
      * Return a Boolean if the Packet was added to the buffer
      * @param packet
-     * @return
+     * @return false -> Dropped Packet, true -> Successfully Added to Buffer
      */
     public Boolean addPacket(Packet packet, Node sendingNode)
     {

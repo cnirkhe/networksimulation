@@ -14,7 +14,7 @@ public class Main {
         Host h2 = new Host(2);
 
         //Construct Links
-        Link l1 = new Link(1, 10 * 1024 * 1024, 10, 64 * 1024, h1, h2);
+        Link l1 = new Link(1, 10 * 1024 * 1024, 10, 8* 64 * 1024, h1, h2);
 
         //Add links to Host definitions
         h1.setLink(l1);
@@ -26,17 +26,11 @@ public class Main {
         //TODO Testing
         h1.addFlow(f1);
 
-        h1.update(5,0);
-        l1.update(5,0);
-        h2.update(5,0);
-
-        h1.update(5,5);
-        l1.update(5,5);
-        h2.update(5,5);
-
-        h1.update(5,10);
-        l1.update(5,10);
-        h2.update(5,10);
-
+        for(int i = 0; i < 30; i+= 5)
+        {
+            h1.update(5,i);
+            h2.update(5,i);
+            l1.update(5,i);
+        }
     }
 }
