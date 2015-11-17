@@ -15,6 +15,8 @@ public abstract class Packet
     private final Node sourceNode;
     private final Node destinationNode;
 
+    private Integer sendTime;
+
     public Packet(Integer packetSize, Flow parentFlow, Integer packedId)
     {
         this(packetSize, parentFlow.getFlowSource(), parentFlow.getFlowDestination(), packedId);
@@ -33,5 +35,8 @@ public abstract class Packet
 
     public Node getSourceNode() {return sourceNode;}
     public Node getDestinationNode() {return destinationNode; }
+
+    public Integer getSendTime() {return sendTime;}
+    public void setSendTime(Integer sendTime) {this.sendTime = sendTime;}
 
 }

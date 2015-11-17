@@ -34,19 +34,7 @@ public class Link
      */
     private Integer packetBufferFill;
 
-    public class PacketTimePair
-    {
-        public PacketTimePair(Packet packet, Integer time)
-        {
-            this.packet = packet;
-            this.time = time;
-        }
-
-        public Packet packet;
-        public Integer time;
-    }
-
-    private Queue<PacketTimePair> currentlyTransmittingPackets;
+    private Queue<Packet> currentlyTransmittingPackets;
 
     private final Integer totalBitsTransmittable;
     private Integer bitsInTransmission;
@@ -91,20 +79,21 @@ public class Link
         /**
          * If the time has come to move the packet to the other side of the link
          */
-        while(!currentlyTransmittingPackets.isEmpty() && overallTime - currentlyTransmittingPackets.peek().time >= linkDelay)
+        while(!currentlyTransmittingPackets.isEmpty() && overallTime - currentlyTransmittingPackets.peek().getSendTime() >= linkDelay)
         {
-            bitsInTransmission -= currentlyTransmittingPackets.peek().packet.getPacketSize();
-            System.out.println("Moving packet " + currentlyTransmittingPackets.peek().packet.getPacketId() + " out of link " + linkId);
-            rightNode.receivePacket(currentlyTransmittingPackets.remove().packet);
+            bitsInTransmission -= currentlyTransmittingPackets.peek().getPacketSize();
+            System.out.println("Moving packet " + currentlyTransmittingPackets.peek().getPacketId() + " out of link " + linkId);
+            rightNode.receivePacket(currentlyTransmittingPackets.remove());
         }
 
         /** Add packets if there is space on the link */
         while(!packetBuffer.isEmpty() && totalBitsTransmittable - bitsInTransmission > packetBuffer.peek().getPacketSize())
         {
-            PacketTimePair ptpair = new PacketTimePair(packetBuffer.remove(), overallTime);
-            currentlyTransmittingPackets.add(ptpair);
-            bitsInTransmission += ptpair.packet.getPacketSize();
-            System.out.println("Adding packet " + ptpair.packet.getPacketId() + " to link " + linkId);
+            Packet packet = packetBuffer.remove();
+            packet.setSendTime(overallTime);
+            currentlyTransmittingPackets.add(packet);
+            bitsInTransmission += packet.getPacketSize();
+            System.out.println("Adding packet " + packet.getPacketId() + " to link " + linkId);
         }
     }
 }
