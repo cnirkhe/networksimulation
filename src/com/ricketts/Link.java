@@ -6,7 +6,7 @@ import java.util.Queue;
 /**
  * Created by chinmay on 11/16/15.
  */
-public class Link implements Updateable
+public class Link implements Updatable
 {
     private final Integer linkId;
     /**

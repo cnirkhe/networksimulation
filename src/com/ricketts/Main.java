@@ -26,20 +26,20 @@ public class Main {
         //Construct Flow
         Flow f1 = new Flow(1, h1, h2, 20, 1.0);
 
-        List<Updateable> updateableList = new LinkedList<>();
+        List<Updatable> updatableList = new LinkedList<>();
 
-        updateableList.add(h1);
-        updateableList.add(h2);
-        updateableList.add(l1);
+        updatableList.add(h1);
+        updatableList.add(h2);
+        updatableList.add(l1);
 
         //Testing
         h1.addFlow(f1);
 
         for(int i = 0; i < 4000; i+= 5)
         {
-            for(Updateable updateable : updateableList)
+            for(Updatable updatable : updatableList)
             {
-                updateable.update(5,i);
+                updatable.update(5,i);
             }
         }
     }
