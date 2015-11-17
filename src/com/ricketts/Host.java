@@ -14,7 +14,7 @@ public class Host extends Node
 
     private Queue<Flow> flowsToStart;
     private Queue<Packet> packetsToSend;
-    private Queue<ACKPacket> ackPacketsToProcess;
+    private Queue<Packet> packetsToProcess;
 
     private Integer windowSize;
 
@@ -27,7 +27,7 @@ public class Host extends Node
         this.link = link;
         flowsToStart = new LinkedList<>();
         packetsToSend = new LinkedList<>();
-        ackPacketsToProcess = new LinkedList<>();
+        packetsToProcess = new LinkedList<>();
         windowSize = 500; //TODO Make this Dynamic with Congestion Control
 
         numbGeneratedPackets = 0;
@@ -52,7 +52,12 @@ public class Host extends Node
         flowsToStart.add(flow);
     }
 
-    public void update()
+    public void receivePacket(Packet packet)
+    {
+        packetsToProcess.add(packet);
+    }
+
+    public void update(Integer intervalTime, Integer overallTime)
     {
         /**
          * If there are flows that have not started (i.e. flowsToStart isn't empty)
@@ -67,15 +72,27 @@ public class Host extends Node
         }
 
         /**
-         * If there are acknowledgments received then they are processed
+         * Process all received packets
+         * This involves checking if they are an ACK or a DataPacket
          */
-        while(!ackPacketsToProcess.isEmpty())
+        if(!packetsToProcess.isEmpty())
         {
-            ACKPacket ackPacket = ackPacketsToProcess.remove();
-            if(maxACKReceived < ackPacket.getPackedId())
+            Packet packet = packetsToProcess.remove();
+
+            if(packet instanceof ACKPacket)
             {
-                maxACKReceived = ackPacket.getPackedId();
+                if(maxACKReceived < packet.getPackedId())
+                {
+                    maxACKReceived = packet.getPackedId();
+                }
+                System.out.println("ACK packet " + packet.getPackedId() + " received at host " + address);
             }
+            else
+            {
+                System.out.println("Data packet " + packet.getPackedId() + " recived at host " + address);
+                //TODO Add analytics here
+            }
+
         }
 
         /**
@@ -84,7 +101,6 @@ public class Host extends Node
          */
         while( packetsToSend.peek().getPackedId() < maxACKReceived + windowSize)
         {
-            //TODO Send the packet
             System.out.println("About to send packet " + packetsToSend.peek().getPackedId());
             link.addPacket(packetsToSend.remove());
         }

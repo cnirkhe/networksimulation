@@ -8,21 +8,21 @@ import java.util.Queue;
  */
 public class Link
 {
-    private Integer linkId;
+    private final Integer linkId;
     /**
-     * Measured in Mbps
+     * Measured in bps
      */
-    private Integer linkRate;
+    private final Integer linkRate;
     /**
-     * Measured in ms
+     * Measured in seconds
      */
-    private Integer linkDelay;
+    private final Double linkDelay;
     /**
      * Measured in bytes
      */
-    private Integer linkBuffer;
+    private final Integer linkBuffer;
 
-    private Node leftNode, rightNode;
+    private final Node leftNode, rightNode;
 
     /**
      * TODO This assumes that the links are one directional
@@ -31,7 +31,24 @@ public class Link
     private Queue<Packet> packetBuffer;
     private Integer packetBufferFill;
 
-    public Link(Integer linkId, Integer linkRate, Integer linkDelay, Integer linkBuffer, Node leftNode, Node rightNode)
+    public class PacketTimePair
+    {
+        public PacketTimePair(Packet packet, Integer time)
+        {
+            this.packet = packet;
+            this.time = time;
+        }
+
+        public Packet packet;
+        public Integer time;
+    }
+
+    private Queue<PacketTimePair> currentlyTransmittingPackets;
+
+    private final Integer totalBitsTransmittable;
+    private Integer bitsInTransmission;
+
+    public Link(Integer linkId, Integer linkRate, Double linkDelay, Integer linkBuffer, Node leftNode, Node rightNode)
     {
         this.linkId = linkId;
         this.linkRate = linkRate;
@@ -42,6 +59,11 @@ public class Link
 
         packetBuffer = new LinkedList<>();
         packetBufferFill = 0;
+
+        currentlyTransmittingPackets = new LinkedList<>();
+
+        totalBitsTransmittable = (int)(linkRate * linkDelay);
+        bitsInTransmission = 0;
     }
 
     /**
@@ -61,8 +83,23 @@ public class Link
         return false;
     }
 
-    public void update()
+    public void update(Integer intervalTime, Integer overallTime)
     {
+        /**
+         * If the time has come to move the packet to the other side of the link
+         */
+        while( overallTime - currentlyTransmittingPackets.peek().time > linkDelay)
+        {
+            bitsInTransmission -= currentlyTransmittingPackets.peek().packet.getPacketSize();
+            rightNode.receivePacket(currentlyTransmittingPackets.remove().packet);
+        }
 
+        /** Add packets if there is space on the link */
+        while(totalBitsTransmittable - bitsInTransmission > packetBuffer.peek().getPacketSize())
+        {
+            PacketTimePair ptpair = new PacketTimePair(packetBuffer.remove(), overallTime);
+            currentlyTransmittingPackets.add(ptpair);
+            bitsInTransmission += ptpair.packet.getPacketSize();
+        }
     }
 }

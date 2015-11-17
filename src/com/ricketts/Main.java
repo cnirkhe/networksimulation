@@ -14,7 +14,7 @@ public class Main {
         Host h2 = new Host(2);
 
         //Construct Links
-        Link l1 = new Link(1, 10, 10, 64 * 1024, h1, h2);
+        Link l1 = new Link(1, 10 * 1024 * 1024, 0.001, 64 * 1024, h1, h2);
 
         //Add links to Host definitions
         h1.setLink(l1);
