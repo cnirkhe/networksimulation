@@ -5,8 +5,8 @@ package com.ricketts;
  */
 public class DataPacket extends Packet
 {
-    public DataPacket(Flow parentFlow, Integer packetId)
+    public DataPacket(Integer packetId, Integer datasize, Flow parentFlow)
     {
-        super(1024, parentFlow, packetId);
+        super(packetId, datasize, parentFlow);
     }
 }

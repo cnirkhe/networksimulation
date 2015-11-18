@@ -20,11 +20,11 @@ public class Link implements Updatable
     // packets transmitting have a direction and start time associated with them
     private class TransmittingPacket
     {
-        Packet packet;
-        Direction direction;
-        Integer transmissionStartTime;
+        public Packet packet;
+        public Direction direction;
+        public Integer transmissionStartTime;
 
-        TransmittingPacket(
+        public TransmittingPacket(
             Packet packet,
             Direction direction,
             Integer transmissionStartTime)
@@ -57,8 +57,8 @@ public class Link implements Updatable
     {
         this(linkId, linkRate, linkDelay, linkBuffer, leftNode, rightNode);
 
-        leftPacketBuffer = new LinkedList<>();
-        rightPacketBuffer = new LinkedList<>();
+        leftPacketBuffer = new LinkedList<TransmittingPacket>();
+        rightPacketBuffer = new LinkedList<TransmittingPacket>();
         leftBufferRemainingCapacity = this.linkBuffer;
         rightBufferRemainingCapacity = this.linkBuffer;
 

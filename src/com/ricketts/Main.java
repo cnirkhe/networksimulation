@@ -26,7 +26,7 @@ public class Main {
         //Construct Flow
         Flow f1 = new Flow(1, h1, h2, 20, 1.0);
 
-        List<Updatable> updatableList = new LinkedList<>();
+        List<Updatable> updatableList = new LinkedList<Updatable>();
 
         updatableList.add(h1);
         updatableList.add(h2);

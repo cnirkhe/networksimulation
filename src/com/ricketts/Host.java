@@ -1,7 +1,7 @@
 package com.ricketts;
 
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.ArrayList;
 import java.util.Queue;
 
 /**
@@ -9,51 +9,71 @@ import java.util.Queue;
  */
 public class Host extends Node
 {
+    // private information
+    private final static Integer initWindowSize = 50;
+    private class SentPacket
+    {
+        public Packet packet;
+        public Integer sendTime;    // sendTime in milliseconds
+
+        public SentPacket(Packet packet, Integer sendTime)
+        {
+            this(packet, sendTime);
+        }
+    }
+
+    // private variables
     private final Integer address;
     private Link link;
-
-    private Queue<Flow> flowsToStart;
-    private Queue<Packet> packetsToSend;
-
     private Integer windowSize;
+    private Queue<Flow> flows;
+    private HashMap<Flow, Queue<Packet> > packets;
+    private Queue<SentPacket> sentPackets;
 
-    private Integer numbGeneratedPackets;
-    private Integer maxACKReceived;
-
+    // constructors
     public Host(int address, Link link)
     {
-        this.address = address;
-        this.link = link;
-        flowsToStart = new LinkedList<>();
-        packetsToSend = new LinkedList<>();
-        windowSize = 50; //TODO Make this Dynamic with Congestion Control
-
-        numbGeneratedPackets = 0;
-        maxACKReceived = 0;
-
+        this(address,
+            link,
+            initWindowSize,
+            new Queue<Flow>(),
+            new HashMap<Flow, Queue<Packet> >(),
+            new Queue<SentPacket>());
     }
 
     public Host(int address)
     {
-        this(address, null);
+        this(address,
+            null,
+            initWindowSize,
+            new Queue<Flow>(),
+            new HashMap<Flow, Queue<Packet> >(),
+            new Queue<SentPacket>());
     }
 
-    /**
-     * Accessor Methods
-     */
-    public int getAddress() { return address; }
-    public Link getLink() { return link; }
-    public void setLink(Link link) { this.link = link; }
+    // Accessor Methods
+    public int getAddress()
+    {
+        return this.address;
+    }
+    public Link getLink()
+    {
+        return this.link;
+    }
 
+    // public methods below
+
+    public void setLink(Link link)
+    {
+        this.link = link;
+    }
     public void addFlow(Flow flow)
     {
-        flowsToStart.add(flow);
+        flows.add(flow);
+        generatePackes
     }
 
-    /**
-     * Process Packet Instantaneously
-     * @param packet
-     */
+    // receive a packet and return an ACK packet
     public void receivePacket(Packet packet)
     {
         if(packet instanceof ACKPacket)
@@ -82,12 +102,12 @@ public class Host extends Node
     public void update(Integer intervalTime, Integer overallTime)
     {
         /**
-         * If there are flows that have not started (i.e. flowsToStart isn't empty)
+         * If there are flows that have not started (i.e. flows isn't empty)
          * Then add the packets for them to the queue
          */
-        while(!flowsToStart.isEmpty())
+        while(!flows.isEmpty())
         {
-            Flow flow = flowsToStart.remove();
+            Flow flow = flows.remove();
             Collection<DataPacket> packetsToAdd = flow.generateDataPackets(numbGeneratedPackets);
             numbGeneratedPackets += packetsToAdd.size();
             packetsToSend.addAll(packetsToAdd);

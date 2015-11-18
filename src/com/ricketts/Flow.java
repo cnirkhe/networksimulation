@@ -1,47 +1,70 @@
 package com.ricketts;
 
 import java.util.Collection;
-import java.util.LinkedList;
+import java.util.Queue;
 
 /**
  * Created by chinmay on 11/16/15.
  */
 public class Flow
 {
+    // private information
+    private static final Integer dataPacketSize = 1024
+
+    // private variables
     private Integer flowId;
     private Node flowSource;
     private Node flowDestination;
-    /**
-     * Measured in MB
-     */
-    private Integer dataSize;
-    /**
-     * Measured in seconds
-     */
-    private Double startTime;
+    private Integer dataSize;       // dataSize in bytes
+    private Integer startTime;      // start time in milliseconds
 
-    public Flow(Integer flowId, Node flowSource, Node flowDestination, Integer dataSize, Double startTime)
+    // constructor
+    public Flow(
+        Integer flowId,
+        Node flowSource,
+        Node flowDestination,
+        Integer dataSize,
+        Double startTime)
     {
-        this.flowId = flowId;
-        this.flowSource = flowSource;
-        this.flowDestination = flowDestination;
-        this.dataSize = dataSize;
-        this.startTime = startTime;
+        this(flowId,
+            flowSource,
+            flowDestination,
+            dataSize,
+            startTime);
     }
 
-    public Node getFlowSource() {return flowSource;}
-    public Node getFlowDestination() {return flowDestination;}
-
-    public LinkedList<DataPacket> generateDataPackets( Integer initalIndex )
+    // accessor methods
+    public Node getFlowSource()
     {
-        Integer numbPackets = dataSize * 1024; //Convert to size of packets
-        LinkedList<DataPacket> packets = new LinkedList<>();
+        return this.flowSource;
+    }
+    public Node getFlowDestination()
+    {
+        return this.flowDestination;
+    }
 
-        for(Integer i = initalIndex; i < numbPackets + initalIndex; i++)
+    // public methods below
+
+    public Queue<DataPacket> generateDataPackets()
+    {
+        Queue<DataPacket> dataPackets = new Queue<DataPacket>();
+
+        Integer dataToPacketize = this.dataSize;
+        Integer packetID = 0;
+        while (dataToPacketize - dataPacketSize > 0)
         {
-            DataPacket packet_i = new DataPacket(this, i);
-            packets.add(packet_i);
+            DataPacket newPacket =
+                new DataPacket(packetID, dataPacketSize, this);
+            dataPackets.add(newPacket);
+            dataToPacketize -= dataPacketSize;
+            packetID++;
         }
-        return packets;
+        if (dataToPacketize > 0)
+        {
+            DataPacket lastNewPacket =
+                new DataPacket(packetID, dataPacketSize, this);
+            dataPackets.add(lastNewPacket);
+        }
+        return dataPackets;
     }
 }

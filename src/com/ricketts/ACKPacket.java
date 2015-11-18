@@ -4,12 +4,10 @@ package com.ricketts;
  * Created by chinmay on 11/16/15.
  */
 public class ACKPacket extends Packet {
-    public ACKPacket(Flow parentFlow, Integer packetId) {
-        super(64, parentFlow, packetId);
-    }
+    private static final ACKPacketSize = 64;
 
-    public ACKPacket(Node sourceNode, Node destinationNode, Integer packetId)
+    public ACKPacket(Node sourceNode, Node destinationNode)
     {
-        super(64, sourceNode, destinationNode, packetId);
+        super(-1, ACKPacketSize, sourceNode, destinationNode);
     }
 }
