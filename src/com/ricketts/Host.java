@@ -11,6 +11,23 @@ public class Host extends Node
 {
     // private information
     private final static Integer initWindowSize = 50;
+    // active flows
+    private class ActiveFlows
+    {
+        public static Integer totalSentPackets = 0;
+
+        public Flow flow;
+        public Queue<Packet> packets;
+        public Integer numSentPackets;
+
+        public ActiveFlows(Flow flow)
+        {
+            this.flow = flow;
+            this.packet = flow.generateDataPackets();
+            this.numSentPackets = 0;
+        }
+    }
+    // sent packets
     private class SentPacket
     {
         public Packet packet;
@@ -26,8 +43,7 @@ public class Host extends Node
     private final Integer address;
     private Link link;
     private Integer windowSize;
-    private Queue<Flow> flows;
-    private HashMap<Flow, Queue<Packet> > packets;
+    private ArrayList<ActiveFlows> flows;
     private Queue<SentPacket> sentPackets;
 
     // constructors
@@ -36,7 +52,6 @@ public class Host extends Node
         this(address,
             link,
             initWindowSize,
-            new Queue<Flow>(),
             new HashMap<Flow, Queue<Packet> >(),
             new Queue<SentPacket>());
     }
@@ -46,7 +61,6 @@ public class Host extends Node
         this(address,
             null,
             initWindowSize,
-            new Queue<Flow>(),
             new HashMap<Flow, Queue<Packet> >(),
             new Queue<SentPacket>());
     }
@@ -69,9 +83,12 @@ public class Host extends Node
     }
     public void addFlow(Flow flow)
     {
-        flows.add(flow);
-        generatePackes
+        this.flows.add(new ActiveFlows(flow));
     }
+
+
+    // below in process of being updated
+
 
     // receive a packet and return an ACK packet
     public void receivePacket(Packet packet)
