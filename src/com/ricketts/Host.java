@@ -11,24 +11,26 @@ public class Host extends Node
 {
     // private information
     private final static Integer initWindowSize = 50;
-    // active flows
-    private class ActiveFlows
+    private class ActiveFlow
     {
         public static Integer totalSentPackets = 0;
 
         public Flow flow;
+        public Integer minPacketID;
+        public Integer maxPacketID;
         public Queue<Packet> packets;
-        public Integer numSentPackets;
+        public Integer numACKPackets;
 
-        public ActiveFlows(Host host, Flow flow)
+        public ActiveFlow(Host host, Flow flow)
         {
             this.flow = flow;
+            this.minPacketID = host.totalGenPackets;
             this.packet = flow.generateDataPackets(host.totalGenPackets);
             host.totalGenPackets += packets.size();
-            this.numSentPackets = 0;
+            this.maxPacketID = host.totalGenPackets - 1;
+            this.numACKPackets = 0;
         }
     }
-    // sent packets
     private class SentPacket
     {
         public Packet packet;
@@ -45,7 +47,7 @@ public class Host extends Node
     private Link link;
     private Integer windowSize;
     private Integer totalGenPackets;
-    private ArrayList<ActiveFlows> flows;
+    private ArrayList<ActiveFlow> flows;
     private Queue<SentPacket> sentPackets;
 
     // constructors
@@ -79,6 +81,19 @@ public class Host extends Node
         return this.link;
     }
 
+    // private utility function
+    private ActiveFlow findFlowFromPacketID(Integer packetID)
+    {
+        for (ActiveFlow flow : this.flows)
+        {
+            if (packetID > flow.minPacketID && packetID < flow.maxPacketID)
+            {
+                return flow;
+            }
+        }
+        return null;
+    }
+
     // public methods below
 
     public void setLink(Link link)
@@ -87,7 +102,7 @@ public class Host extends Node
     }
     public void addFlow(Flow flow)
     {
-        this.flows.add(new ActiveFlows(this, flow));
+        this.flows.add(new ActiveFlow(this, flow));
     }
 
 
@@ -97,9 +112,9 @@ public class Host extends Node
     // receive a packet and return an ACK packet
     public void receivePacket(Packet packet)
     {
-        if(packet instanceof ACKPacket)
+        if (packet instanceof ACKPacket)
         {
-            if(maxACKReceived < packet.getPacketId())
+            if (maxACKReceived < packet.getPacketId())
             {
                 maxACKReceived = packet.getPacketId();
             }
