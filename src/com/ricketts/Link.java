@@ -69,6 +69,17 @@ public class Link implements Updatable
         // bitsInTransmission = 0;
     }
 
+    // Constructor before setting left and right nodes
+    public Link(
+            Integer linkId,
+            Integer linkRate,
+            Integer linkDelay,
+            Integer linkBuffer)
+    {
+        this(linkId, linkRate, linkDelay, linkBuffer, null, null);
+    }
+
+    public Integer getId() { return this.linkId; }
 
     // Parker: I didn't touch anything below. Link update functionality goes
     //         here. @Nailen you have that stuff right?

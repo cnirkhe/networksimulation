@@ -12,6 +12,7 @@ public class Flow
     private static final Integer dataPacketSize = 1024
 
     // private variables
+    private Integer id;
     private Integer flowId;
     private Node flowSource;
     private Node flowDestination;
@@ -20,6 +21,7 @@ public class Flow
 
     // constructor
     public Flow(
+        Integer id,
         Integer flowId,
         Node flowSource,
         Node flowDestination,
@@ -42,6 +44,7 @@ public class Flow
     {
         return this.flowDestination;
     }
+    public Integer getId() { return id; }
 
     // public methods below
 
