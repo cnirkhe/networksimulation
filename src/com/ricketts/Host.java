@@ -20,10 +20,11 @@ public class Host extends Node
         public Queue<Packet> packets;
         public Integer numSentPackets;
 
-        public ActiveFlows(Flow flow)
+        public ActiveFlows(Host host, Flow flow)
         {
             this.flow = flow;
-            this.packet = flow.generateDataPackets();
+            this.packet = flow.generateDataPackets(host.totalGenPackets);
+            host.totalGenPackets += packets.size();
             this.numSentPackets = 0;
         }
     }
@@ -43,6 +44,7 @@ public class Host extends Node
     private final Integer address;
     private Link link;
     private Integer windowSize;
+    private Integer totalGenPackets;
     private ArrayList<ActiveFlows> flows;
     private Queue<SentPacket> sentPackets;
 
@@ -52,6 +54,7 @@ public class Host extends Node
         this(address,
             link,
             initWindowSize,
+            0,
             new HashMap<Flow, Queue<Packet> >(),
             new Queue<SentPacket>());
     }
@@ -61,6 +64,7 @@ public class Host extends Node
         this(address,
             null,
             initWindowSize,
+            0,
             new HashMap<Flow, Queue<Packet> >(),
             new Queue<SentPacket>());
     }
@@ -83,7 +87,7 @@ public class Host extends Node
     }
     public void addFlow(Flow flow)
     {
-        this.flows.add(new ActiveFlows(flow));
+        this.flows.add(new ActiveFlows(this, flow));
     }
 
 
@@ -99,7 +103,8 @@ public class Host extends Node
             {
                 maxACKReceived = packet.getPacketId();
             }
-            System.out.println("ACK packet " + packet.getPacketId() + " received at host " + address);
+            System.out.println("ACK packet " + packet.getPacketId() +
+                " received at host " + address);
         }
         else if(packet instanceof DataPacket)
         {

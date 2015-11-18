@@ -45,12 +45,12 @@ public class Flow
 
     // public methods below
 
-    public Queue<DataPacket> generateDataPackets()
+    public Queue<DataPacket> generateDataPackets(Integer initID)
     {
         Queue<DataPacket> dataPackets = new Queue<DataPacket>();
 
         Integer dataToPacketize = this.dataSize;
-        Integer packetID = 0;
+        Integer packetID = initID;
         while (dataToPacketize - dataPacketSize > 0)
         {
             DataPacket newPacket =
