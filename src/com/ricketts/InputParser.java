@@ -68,8 +68,8 @@ public class InputParser {
             for (int i = 0; i < hostArray.length(); ++i) {
                 JSONObject hostJson = hostArray.getJSONObject(i);
                 int address = hostJson.getInt("address");
-                int linkId = hostJson.getInt("link");
-                Link link = linkMap.get(linkId);
+                int linkID = hostJson.getInt("link");
+                Link link = linkMap.get(linkID);
                 Host host = new Host(address, link);
                 host.setLink(link);
                 // flows????
@@ -109,9 +109,9 @@ public class InputParser {
             for (int i = 0; i < packetArray.length(); ++i) {
                 JSONObject packetJson = packetArray.getJSONObject(i);
                 int size = packetJson.getInt("size");
-                int flowId = packetJson.getInt("flow");
+                int flowID = packetJson.getInt("flow");
                 int id = packetJson.getInt("id");
-                output.add(new DataPacket(id, size, flowId));
+                output.add(new DataPacket(id, size, flowID));
             }
         } catch (JSONException e) {
             System.out.println(e);
@@ -130,15 +130,15 @@ public class InputParser {
             for (int i = 0; i < flowArray.length(); ++i) {
                 JSONObject flowJson = flowArray.getJSONObject(i);
                 int id = flowJson.getInt("id");
-                int sourceId = flowJson.getInt("source");
-                Node source = addressBook.get(sourceId);
-                int destinationId = flowJson.getInt("destination");
-                Node destination = addressBook.get(destinationId);
+                int sourceID = flowJson.getInt("source");
+                Node source = addressBook.get(sourceID);
+                int destinationID = flowJson.getInt("destination");
+                Node destination = addressBook.get(destinationID);
                 int startTime = flowJson.getInt("startTime");
 
                 ArrayList<Packet> packetsForFlow = new ArrayList<>();
                 for (Packet packet : packets) {
-                    if (packet.getFlowId() == id) {
+                    if (packet.getFlowID() == id) {
                         packetsForFlow.add(packet);
                     }
                 }
@@ -180,7 +180,7 @@ public class InputParser {
     public HashMap<Integer, Link> makeLinkMap(ArrayList<Link> links) {
         HashMap<Integer, Link> output = new HashMap<>();
         for (Link link : links) {
-            output.put(link.getId(), link);
+            output.put(link.getID(), link);
         }
         return output;
     }
@@ -189,7 +189,7 @@ public class InputParser {
     public HashMap<Integer, Flow> makeFlowMap(ArrayList<Flow> flows) {
         HashMap<Integer, Flow> output = new HashMap<>();
         for (Flow f : flows) {
-            output.put(f.getId(), f);
+            output.put(f.getID(), f);
         }
         return output;
     }

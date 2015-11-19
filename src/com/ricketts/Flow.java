@@ -12,27 +12,27 @@ public class Flow {
 
     // private variables
     private Integer id;
-    private Integer flowId;
-    private Node flowSource;
-    private Node flowDestination;
-    private Integer dataSize;       // dataSize in bytes
+    private Integer flowID;
+    private Host source;
+    private Host destination;
+    private Integer dataSize;       // dataSize in bits
     private Integer startTime;      // start time in milliseconds
 
     // constructor
-    public Flow(Integer id, Integer flowId, Node flowSource,
-        Node flowDestination, Integer dataSize, Integer startTime) {
+    public Flow(Integer id, Integer flowID, Host source,
+        Host destination, Integer dataSize, Integer startTime) {
         this.id = id;
-        this.flowId = flowId;
-        this.flowSource = flowSource;
-        this.flowDestination = flowDestination;
+        this.flowID = flowID;
+        this.source = source;
+        this.destination = destination;
         this.dataSize = dataSize;
         this.startTime = startTime;
     }
 
     // accessor methods
-    public Node getFlowSource() { return this.flowSource; }
-    public Node getFlowDestination() { return this.flowDestination; }
-    public Integer getId() { return id; }
+    public Host getSource() { return this.source; }
+    public Host getDestination() { return this.destination; }
+    public Integer getID() { return id; }
 
     // public methods below
 

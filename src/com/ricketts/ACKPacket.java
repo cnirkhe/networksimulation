@@ -6,7 +6,7 @@ package com.ricketts;
 public class ACKPacket extends Packet {
     private static final Integer ACKPacketSize = 64;
 
-    public ACKPacket(Integer packetID, Node sourceNode, Node destinationNode) {
-        super(packetID, ACKPacketSize, sourceNode, destinationNode, null);
+    public ACKPacket(Integer packetID, Host source, Host destination) {
+        super(packetID, ACKPacketSize, source, destination);
     }
 }

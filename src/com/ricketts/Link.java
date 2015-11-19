@@ -10,10 +10,10 @@ public class Link implements Updatable
 {
     private enum Direction {LEFT, RIGHT}
 
-    private final Integer linkId;
+    private final Integer linkID;
     private final Integer linkRate;     // link rate in bits per second
     private final Integer linkDelay;    // delay in milliseconds
-    private final Integer linkBuffer;   // buffer size in bytes
+    private final Integer linkBuffer;   // buffer size in bits
 
     private final Node leftNode, rightNode;
 
@@ -47,14 +47,14 @@ public class Link implements Updatable
     // private Integer bitsInTransmission;
 
     public Link(
-        Integer linkId,
+        Integer linkID,
         Integer linkRate,
         Integer linkDelay,
         Integer linkBuffer,
         Node leftNode,
         Node rightNode)
     {
-        this(linkId, linkRate, linkDelay, linkBuffer, leftNode, rightNode);
+        this(linkID, linkRate, linkDelay, linkBuffer, leftNode, rightNode);
 
         leftPacketBuffer = new LinkedList<TransmittingPacket>();
         rightPacketBuffer = new LinkedList<TransmittingPacket>();
@@ -70,15 +70,15 @@ public class Link implements Updatable
 
     // Constructor before setting left and right nodes
     public Link(
-            Integer linkId,
+            Integer linkID,
             Integer linkRate,
             Integer linkDelay,
             Integer linkBuffer)
     {
-        this(linkId, linkRate, linkDelay, linkBuffer, null, null);
+        this(linkID, linkRate, linkDelay, linkBuffer, null, null);
     }
 
-    public Integer getId() { return this.linkId; }
+    public Integer getID() { return this.linkID; }
 
     // Parker: I didn't touch anything below. Link update functionality goes
     //         here. @Nailen you have that stuff right?
@@ -120,7 +120,7 @@ public class Link implements Updatable
         {
             TransmittingPacket current = currentlyTransmittingPackets.peek();
             bitsInTransmission -= current.packet.getPacketSize();
-            System.out.println("Moving " + (current.packet instanceof ACKPacket ? "ACK" : "Data") + " packet " + current.packet.getPacketId() + " out of link " + linkId);
+            System.out.println("Moving " + (current.packet instanceof ACKPacket ? "ACK" : "Data") + " packet " + current.packet.getPacketID() + " out of link " + linkID);
             if(current.direction == Direction.RIGHT) {
                 rightNode.receivePacket(currentlyTransmittingPackets.remove().packet);
             }
@@ -137,7 +137,7 @@ public class Link implements Updatable
             packetDirectionPair.packet.setSendTime(overallTime);
             currentlyTransmittingPackets.add(packetDirectionPair);
             bitsInTransmission += packetDirectionPair.packet.getPacketSize();
-            System.out.println("Adding " + (packetDirectionPair.packet instanceof ACKPacket ? "ACK" : "Data") + " packet " + packetDirectionPair.packet.getPacketId() + " to link " + linkId);
+            System.out.println("Adding " + (packetDirectionPair.packet instanceof ACKPacket ? "ACK" : "Data") + " packet " + packetDirectionPair.packet.getPacketID() + " to link " + linkID);
         }
     }
 }
