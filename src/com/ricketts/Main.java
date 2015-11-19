@@ -1,5 +1,9 @@
 package com.ricketts;
 
+import org.json.JSONObject;
+
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -11,36 +15,35 @@ public class Main {
          * For now I'm going to artifically construct the Network
          * TODO adjust to building the Network from a definition JSON
          */
+        String filename = new String("h0.json");
+        InputParser ip = new InputParser();
+        ip.parse(filename);
+        ArrayList<Link> links = ip.extractLinks();
+        HashMap<Integer, Link> linkMap = ip.makeLinkMap(links);
 
-        //Construct Hosts
-        Host h1 = new Host(1);
-        Host h2 = new Host(2);
+        // Get hosts given links
+        ArrayList<Host> hosts = ip.extractHosts(linkMap);
+        HashMap<Integer, Node> addressBook = ip.makeNodeMap(hosts);
 
-        //Construct Links
-        Link l1 = new Link(1, 10 * 1024 * 1024, 10, 8* 64 * 1024, h1, h2);
+        // Make flows
+        ArrayList<Flow> flows = ip.extractFlows(addressBook);
 
-        //Add links to Host definitions
-        h1.setLink(l1);
-        h2.setLink(l1);
-
-        //Construct Flow
-        Flow f1 = new Flow(1, h1, h2, 20, 1.0);
-
-        List<Updatable> updatableList = new LinkedList<Updatable>();
-
-        updatableList.add(h1);
-        updatableList.add(h2);
-        updatableList.add(l1);
-
-        //Testing
-        h1.addFlow(f1);
-
-        for(int i = 0; i < 4000; i+= 5)
-        {
-            for(Updatable updatable : updatableList)
-            {
-                updatable.update(5,i);
+        // Add hosts to links
+        int linkId;
+        Link link;
+        for (Host host : hosts) {
+            linkId = host.getLinkId();
+            link = linkMap.get(linkId);
+            if (link.getLeftNode() != null) {
+                link.setLeftNode(host);
+            } else if (link.getRightNode() != null) {
+                link.setRightNode(host);
+            } else {
+                System.out.println("We really fucked it alright");
             }
         }
+
+        RunSim.run(links, hosts, 100, -1);
+
     }
 }
