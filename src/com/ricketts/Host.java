@@ -1,6 +1,5 @@
 package com.ricketts;
 
-import java.util.Collection;
 import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.ListIterator;
@@ -53,7 +52,7 @@ public class Host extends Node {
             host.totalGenPackets += packets.size();
             this.maxPacketID = host.totalGenPackets - 1;
             this.lastACKCount = 0;
-            this.sendTimes = new HashMap<Integer, Integer>();
+            this.sendTimes = new HashMap<>();
         }
     }
 
@@ -250,7 +249,7 @@ public class Host extends Node {
                     // timeout time has elapsed since it was sent, and
                     // retransmit if so
                     for (Integer packetID : flow.sendTimes.keySet()) {
-                        if (flow.sendTimes.get(packetID) + this.timeoutLength >
+                        if (flow.sendTimes.get(packetID) + timeoutLength >
                             RunSim.getCurrentTime())
                         {
                             flow.sendTimes.put(packetID, RunSim.getCurrentTime());

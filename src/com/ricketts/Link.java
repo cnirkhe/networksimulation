@@ -121,7 +121,7 @@ public class Link implements Updatable {
         return false;
     }
 
-    /*
+    /**
      * Updates a Link so that it performs all the transfers it should during a
      * given timestep.
      */
