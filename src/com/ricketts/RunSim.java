@@ -21,17 +21,15 @@ public class RunSim
     // same, but easy to fix if I'm wrong.
     // probably want links b/c of dynamic queues or something idk
     // Right now runtimeMillis < 0 means never ending
-    public static void run(final ArrayList<Link> links, final ArrayList<Host> hosts,
+    public static void run(final ArrayList<Updatable> updatableList,
                             final Integer intervalTimeMillis, final Integer runtimeMillis) {
         final int startMillis = getCurrentTime();
         final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         final Runnable updater = new Runnable() {
             public void run() {
-                for (Link l : links) {
-                    l.update(intervalTimeMillis, getCurrentTime() - startMillis);
-                }
-                for (Host h : hosts) {
-                    h.update(intervalTimeMillis, getCurrentTime() - startMillis);
+                for(Updatable u : updatableList)
+                {
+                    u.update(intervalTimeMillis, getCurrentTime() - startMillis);
                 }
             }
         };

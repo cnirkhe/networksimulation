@@ -2,6 +2,7 @@ package com.ricketts;
 
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -41,7 +42,12 @@ public class Main {
             }
         }
 
-        RunSim.run(links, hosts, 100, -1);
+        ArrayList<Updatable> updatableList = new ArrayList<>();
+
+        updatableList.addAll(hosts);
+        updatableList.addAll(links);
+
+        RunSim.run(updatableList, 1, -1);
 
     }
 }
