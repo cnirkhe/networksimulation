@@ -32,12 +32,12 @@ public class Main {
         Link link;
         for (Host host : hosts) {
             link = host.getLink();
-            if (link.getLeftNode() != null) {
+            if (link.getLeftNode() == null) {
                 link.setLeftNode(host);
-            } else if (link.getRightNode() != null) {
+            } else if (link.getRightNode() == null) {
                 link.setRightNode(host);
             } else {
-                System.out.println("We really fucked it alright");
+                System.out.println("Bad Network Definition.");
             }
         }
 

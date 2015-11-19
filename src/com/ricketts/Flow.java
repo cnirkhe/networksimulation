@@ -36,19 +36,19 @@ public class Flow {
     // public methods below
 
     public LinkedList<DataPacket> generateDataPackets(Integer initID) {
-        LinkedList<DataPacket> dataPackets = new LinkedList<DataPacket>();
+        LinkedList<DataPacket> dataPackets = new LinkedList<>();
 
-        Integer dataToPacketize = this.dataSize;
+        Integer dataToPacketSize = this.dataSize;
         Integer packetID = initID;
-        while (dataToPacketize - dataPacketSize > 0) {
+        while (dataToPacketSize - dataPacketSize > 0) {
             DataPacket newPacket =
                 new DataPacket(packetID, dataPacketSize, this);
             dataPackets.add(newPacket);
-            dataToPacketize -= dataPacketSize;
+            dataToPacketSize -= dataPacketSize;
             packetID++;
         }
 
-        if (dataToPacketize > 0) {
+        if (dataToPacketSize > 0) {
             DataPacket lastNewPacket =
                 new DataPacket(packetID, dataPacketSize, this);
             dataPackets.add(lastNewPacket);

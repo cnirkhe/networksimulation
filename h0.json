@@ -4,7 +4,7 @@
         {"address": 2, "link": 1}
         ],
     "links" : [
-        {"id": 3, "capacity": 10, "transmissionDelay": 10, "bufferSize": 64}
+        {"id": 1, "capacity": 10, "transmissionDelay": 10, "bufferSize": 64}
         ],
     "flows" : [
         {"id": 4, "source": 1, "destination": 2, "dataAmount": 20, "startTime": 1000},
