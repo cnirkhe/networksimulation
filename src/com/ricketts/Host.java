@@ -48,16 +48,6 @@ public class Host extends Node {
         }
     }
 
-    private class SentPacket {
-        public Packet packet;
-        public Integer sendTime;    // sendTime in milliseconds
-
-        public SentPacket(Packet packet, Integer sendTime) {
-            this.packet = packet;
-            this.sendTime = sendTime;
-        }
-    }
-
     // constructors
     public Host(int address, Link link, Integer windowSize,
         Integer totalGenPackets, LinkedList<Packet> packetsToSend,
@@ -155,12 +145,12 @@ public class Host extends Node {
                 if (download.maxPacketID == packet.getPacketID()) {
                     downloads.remove(download);
                     packetsToSend.add(new ACKPacket(packet.getPacketID(),
-                        packet.getDestination(), packet.getSource()));
+                            packet.getDestination(), packet.getSource()));
                 }
                 else if (download.nextPacketID == packet.getPacketID()) {
                     download.nextPacketID++;
                     packetsToSend.add(new ACKPacket(packet.getPacketID(),
-                        packet.getDestination(), packet.getSource()));
+                            packet.getDestination(), packet.getSource()));
                 }
             }
         }

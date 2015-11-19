@@ -12,17 +12,15 @@ public class Flow {
 
     // private variables
     private Integer id;
-    private Integer flowID;
     private Host source;
     private Host destination;
     private Integer dataSize;       // dataSize in bits
     private Integer startTime;      // start time in milliseconds
 
     // constructor
-    public Flow(Integer id, Integer flowID, Host source,
-        Host destination, Integer dataSize, Integer startTime) {
+    public Flow(Integer id, Host source, Host destination, Integer dataSize,
+        Integer startTime) {
         this.id = id;
-        this.flowID = flowID;
         this.source = source;
         this.destination = destination;
         this.dataSize = dataSize;

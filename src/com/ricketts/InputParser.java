@@ -68,10 +68,9 @@ public class InputParser {
             for (int i = 0; i < hostArray.length(); ++i) {
                 JSONObject hostJson = hostArray.getJSONObject(i);
                 int address = hostJson.getInt("address");
-                int linkID = hostJson.getInt("link");
-                Link link = linkMap.get(linkID);
+                int linkId = hostJson.getInt("link");
+                Link link = linkMap.get(linkId);
                 Host host = new Host(address, link);
-                host.setLink(link);
                 // flows????
                 output.add(host);
             }
@@ -90,7 +89,7 @@ public class InputParser {
                 int id = linkJson.getInt("id");
                 int capacity = linkJson.getInt("capacity");
                 int transmissionDelay = linkJson.getInt("transmissionDelay");
-                int buffer = linkJson.getInt("buffer");
+                int buffer = linkJson.getInt("bufferSize");
                 // add in left node and right node
                 output.add(new Link(id, capacity, transmissionDelay, buffer));
             }
@@ -102,6 +101,8 @@ public class InputParser {
 
     // Given a flow map, extract packet info and place them in flows (wait how should this even
     // work?)
+    // pretty sure our json shouldn't even have packets, awk
+    /*
     public ArrayList<Packet> extractPackets(){
         ArrayList<Packet> output = new ArrayList<>();
         try {
@@ -109,40 +110,34 @@ public class InputParser {
             for (int i = 0; i < packetArray.length(); ++i) {
                 JSONObject packetJson = packetArray.getJSONObject(i);
                 int size = packetJson.getInt("size");
-                int flowID = packetJson.getInt("flow");
+                int flowId = packetJson.getInt("flow");
                 int id = packetJson.getInt("id");
-                output.add(new DataPacket(id, size, flowID));
+                output.add(new DataPacket(id, size, flowId));
             }
         } catch (JSONException e) {
             System.out.println(e);
         }
         return output;
     }
+    */
 
     /* Given an address book and a list of packets, construct all the flows in
      * the network.
      */
-    public ArrayList<Flow> extractFlows(HashMap<Integer, Node> addressBook,
-                                        ArrayList<Packet> packets) {
+    public ArrayList<Flow> extractFlows(HashMap<Integer, Node> addressBook) {
         ArrayList<Flow> output = new ArrayList<>();
         try {
             JSONArray flowArray = jsonObject.getJSONObject("network").getJSONArray("flows");
             for (int i = 0; i < flowArray.length(); ++i) {
                 JSONObject flowJson = flowArray.getJSONObject(i);
                 int id = flowJson.getInt("id");
-                int sourceID = flowJson.getInt("source");
-                Node source = addressBook.get(sourceID);
-                int destinationID = flowJson.getInt("destination");
-                Node destination = addressBook.get(destinationID);
+                int sourceId = flowJson.getInt("source");
+                Host source = (Host) addressBook.get(sourceId);
+                int destinationId = flowJson.getInt("destination");
+                Host destination = (Host) addressBook.get(destinationId);
+                int dataAmount = flowJson.getInt("dataAmount");
                 int startTime = flowJson.getInt("startTime");
-
-                ArrayList<Packet> packetsForFlow = new ArrayList<>();
-                for (Packet packet : packets) {
-                    if (packet.getFlowID() == id) {
-                        packetsForFlow.add(packet);
-                    }
-                }
-                output.add(new Flow(id, source, destination, packetsForFlow, startTime));
+                output.add(new Flow(id, source, destination, dataAmount, startTime));
             }
         } catch (JSONException e) {
             System.out.println(e);
@@ -195,12 +190,23 @@ public class InputParser {
     }
 
     // Create an address book of routers and hosts.
+    /*
     public HashMap<Integer, Node> makeNodeMap(ArrayList<Router> routers,
                                               ArrayList<Host> hosts) {
         HashMap<Integer, Node> output = new HashMap<>();
         for (Router router : routers) {
             output.put(router.getAddress(), router);
         }
+        for (Host host : hosts) {
+            output.put(host.getAddress(), host);
+        }
+        return output;
+    }
+    */
+
+    // temporary: addressbook of just hosts
+    public HashMap<Integer, Node> makeNodeMap(ArrayList<Host> hosts) {
+        HashMap<Integer, Node> output = new HashMap<>();
         for (Host host : hosts) {
             output.put(host.getAddress(), host);
         }
