@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="org.codeartisans:org.json:20150729" type="repository">
+    <properties maven-id="org.codeartisans:org.json:20150729" />
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/codeartisans/org.json/20150729/org.json-20150729.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

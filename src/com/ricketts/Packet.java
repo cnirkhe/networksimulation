@@ -3,47 +3,31 @@ package com.ricketts;
 /**
  * Created by chinmay on 11/16/15.
  */
-public abstract class Packet
-{
-    private final Integer packetId;
-    private final Integer packetSize;   // packet size in bytes
-    private final Node sourceNode;
-    private final Node destinationNode;
+public abstract class Packet {
+    private final Integer id;
+    private final Integer size;   // packet size in bits
+    private final Host source;
+    private final Host destination;
 
-    public Packet(Integer packedId, Integer packetSize, Flow parentFlow)
-    {
-        this(packedId,
-            packetSize,
-            parentFlow.getFlowSource(),
-            parentFlow.getFlowDestination());
+    public Packet(Integer id, Integer size, Host source, Host destination) {
+        this.id = id;
+        this.size = size;
+        this.source = source;
+        this.destination = destination;
     }
 
-    public Packet(
-        Integer packetId,
-        Integer packetSize,
-        Node sourceNode,
-        Node destinationNode)
-    {
-        this(packetId,
-            packetSize,
-            sourceNode,
-            destinationNode);
+    public Packet(Integer id, Integer size, Flow parentFlow) {
+        this(id, size, parentFlow.getSource(), parentFlow.getDestination());
     }
 
-    public Integer getPacketId()
-    {
-        return packetId;
+    // Fix this, not sure what it's supposed to look like since the other
+    // constructors don't work either
+    public Packet(Integer id, Integer size) {
+        this(id, size, null, null);
     }
-    public Integer getPacketSize()
-    {
-        return packetSize;
-    }
-    public Node getSourceNode()
-    {
-        return sourceNode;
-    }
-    public Node getDestinationNode()
-    {
-        return destinationNode;
-    }
+
+    public Integer getID() { return id; }
+    public Integer getSize() { return size; }
+    public Host getSource() { return source; }
+    public Host getDestination() { return destination; }
 }

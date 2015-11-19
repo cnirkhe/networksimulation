@@ -69,7 +69,7 @@ public class InputParser {
                 int address = hostJson.getInt("address");
                 int linkId = hostJson.getInt("link");
                 Link link = linkMap.get(linkId);
-                Host host = new Host(address, link, linkId);
+                Host host = new Host(address, link);
                 // flows????
                 output.add(host);
             }
@@ -131,9 +131,9 @@ public class InputParser {
                 JSONObject flowJson = flowArray.getJSONObject(i);
                 int id = flowJson.getInt("id");
                 int sourceId = flowJson.getInt("source");
-                Node source = addressBook.get(sourceId);
+                Host source = (Host) addressBook.get(sourceId);
                 int destinationId = flowJson.getInt("destination");
-                Node destination = addressBook.get(destinationId);
+                Host destination = (Host) addressBook.get(destinationId);
                 int dataAmount = flowJson.getInt("dataAmount");
                 int startTime = flowJson.getInt("startTime");
                 output.add(new Flow(id, source, destination, dataAmount, startTime));
@@ -174,7 +174,7 @@ public class InputParser {
     public HashMap<Integer, Link> makeLinkMap(ArrayList<Link> links) {
         HashMap<Integer, Link> output = new HashMap<>();
         for (Link link : links) {
-            output.put(link.getId(), link);
+            output.put(link.getID(), link);
         }
         return output;
     }
@@ -183,7 +183,7 @@ public class InputParser {
     public HashMap<Integer, Flow> makeFlowMap(ArrayList<Flow> flows) {
         HashMap<Integer, Flow> output = new HashMap<>();
         for (Flow f : flows) {
-            output.put(f.getId(), f);
+            output.put(f.getID(), f);
         }
         return output;
     }

@@ -1,70 +1,59 @@
 package com.ricketts;
 
 import java.util.Collection;
-import java.util.Queue;
+import java.util.LinkedList;
 
 /**
  * Created by chinmay on 11/16/15.
  */
-public class Flow
-{
+public class Flow {
     // private information
-    private static final Integer dataPacketSize = 1024
+    private static final Integer dataPacketSize = 1024;
 
     // private variables
-    private Integer flowId;
-    private Node flowSource;
-    private Node flowDestination;
-    private Integer dataSize;       // dataSize in bytes
+    private Integer id;
+    private Host source;
+    private Host destination;
+    private Integer dataSize;       // dataSize in bits
     private Integer startTime;      // start time in milliseconds
 
     // constructor
-    public Flow(
-        Integer flowId,
-        Node flowSource,
-        Node flowDestination,
-        Integer dataSize,
-        Double startTime)
-    {
-        this(flowId,
-            flowSource,
-            flowDestination,
-            dataSize,
-            startTime);
+    public Flow(Integer id, Host source, Host destination, Integer dataSize,
+        Integer startTime) {
+        this.id = id;
+        this.source = source;
+        this.destination = destination;
+        this.dataSize = dataSize;
+        this.startTime = startTime;
     }
 
     // accessor methods
-    public Node getFlowSource()
-    {
-        return this.flowSource;
-    }
-    public Node getFlowDestination()
-    {
-        return this.flowDestination;
-    }
+    public Host getSource() { return this.source; }
+    public Host getDestination() { return this.destination; }
+    public Integer getDataSize() { return this.dataSize; }
+    public Integer getID() { return this.id; }
 
     // public methods below
 
-    public Queue<DataPacket> generateDataPackets(Integer initID)
-    {
-        Queue<DataPacket> dataPackets = new Queue<DataPacket>();
+    public LinkedList<DataPacket> generateDataPackets(Integer initID) {
+        LinkedList<DataPacket> dataPackets = new LinkedList<>();
 
-        Integer dataToPacketize = this.dataSize;
+        Integer dataToPacketSize = this.dataSize;
         Integer packetID = initID;
-        while (dataToPacketize - dataPacketSize > 0)
-        {
+        while (dataToPacketSize - dataPacketSize > 0) {
             DataPacket newPacket =
                 new DataPacket(packetID, dataPacketSize, this);
             dataPackets.add(newPacket);
-            dataToPacketize -= dataPacketSize;
+            dataToPacketSize -= dataPacketSize;
             packetID++;
         }
-        if (dataToPacketize > 0)
-        {
+
+        if (dataToPacketSize > 0) {
             DataPacket lastNewPacket =
                 new DataPacket(packetID, dataPacketSize, this);
             dataPackets.add(lastNewPacket);
         }
+        
         return dataPackets;
     }
 }

@@ -5,5 +5,5 @@ package com.ricketts;
  */
 public interface Updatable
 {
-    public void update(Integer intervalTime, Integer overallTime);
+    void update(Integer intervalTime, Integer overallTime);
 }

@@ -29,17 +29,15 @@ public class Main {
         ArrayList<Flow> flows = ip.extractFlows(addressBook);
 
         // Add hosts to links
-        int linkId;
         Link link;
         for (Host host : hosts) {
-            linkId = host.getLinkId();
-            link = linkMap.get(linkId);
-            if (link.getLeftNode() != null) {
+            link = host.getLink();
+            if (link.getLeftNode() == null) {
                 link.setLeftNode(host);
-            } else if (link.getRightNode() != null) {
+            } else if (link.getRightNode() == null) {
                 link.setRightNode(host);
             } else {
-                System.out.println("We really fucked it alright");
+                System.out.println("Bad Network Definition.");
             }
         }
 
