@@ -128,7 +128,7 @@ public class Link implements Updatable {
     public void update(Integer intervalTime, Integer overallTime) {
         // While there's time left in the interval,,,
         Integer timeLeft = intervalTime, packetBits, endOfDelay;
-        
+
         while (timeLeft > 0) {
             // If there's no packet being currently transmitted, fetch one from
             // the left or right buffer. Preference is given to whichever buffer
