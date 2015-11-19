@@ -112,11 +112,17 @@ public class Link implements Updatable {
         Integer packetBits, endOfDelay;
         while (timeLeft > 0) {
             if (this.currentlyTransmittingPacket == null) {
-                if (this.leftPacketBuffer.peek().transmissionStartTime <
-                    this.rightPacketBuffer.peek().transmissionStartTime)
-                {
-                    this.currentlyTransmittingPacket = leftPacketBuffer.remove();
+                TransmittingPacket leftPacket = leftPacketBuffer.peek();
+                TransmittingPacket rightPacket = rightPacketBuffer.peek();
+                if (leftPacket == null) {
+                    if (rightPacket == null)
+                        break;
+                    this.currentlyTransmittingPacket = rightPacketBuffer.remove();
                 }
+                else if (rightPacket == null)
+                    this.currentlyTransmittingPacket = leftPacketBuffer.remove();
+                else if (leftPacket.transmissionStartTime < rightPacket.transmissionStartTime)
+                    this.currentlyTransmittingPacket = leftPacketBuffer.remove();
                 else
                     this.currentlyTransmittingPacket = rightPacketBuffer.remove();
 

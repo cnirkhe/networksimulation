@@ -30,7 +30,8 @@ public class Flow {
     // accessor methods
     public Host getSource() { return this.source; }
     public Host getDestination() { return this.destination; }
-    public Integer getID() { return id; }
+    public Integer getDataSize() { return this.dataSize; }
+    public Integer getID() { return this.id; }
 
     // public methods below
 
@@ -39,20 +40,20 @@ public class Flow {
 
         Integer dataToPacketize = this.dataSize;
         Integer packetID = initID;
-        while (dataToPacketize - dataPacketSize > 0)
-        {
+        while (dataToPacketize - dataPacketSize > 0) {
             DataPacket newPacket =
                 new DataPacket(packetID, dataPacketSize, this);
             dataPackets.add(newPacket);
             dataToPacketize -= dataPacketSize;
             packetID++;
         }
-        if (dataToPacketize > 0)
-        {
+
+        if (dataToPacketize > 0) {
             DataPacket lastNewPacket =
                 new DataPacket(packetID, dataPacketSize, this);
             dataPackets.add(lastNewPacket);
         }
+        
         return dataPackets;
     }
 }
