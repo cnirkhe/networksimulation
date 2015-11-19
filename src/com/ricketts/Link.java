@@ -24,12 +24,11 @@ public class Link implements Updatable
         public Direction direction;
         public Integer transmissionStartTime;
 
-        public TransmittingPacket(
-            Packet packet,
-            Direction direction,
-            Integer transmissionStartTime)
-        {
-            this(packet, direction, transmissionStartTime)
+        public TransmittingPacket(Packet packet, Direction direction,
+            Integer transmissionStartTime) {
+            this.packet = packet;
+            this.direction = direction;
+            this.transmissionStartTime = transmissionStartTime;
         }
     }
 
