@@ -140,12 +140,18 @@ public class Link implements Updatable {
             // has the packet at the front of its queue that's been waiting
             // longer.
             if (this.currentlyTransmittingPacket == null) {
-                TransmittingPacket leftPacket = leftPacketBuffer.peek();
-                TransmittingPacket rightPacket = rightPacketBuffer.peek();
-                if (leftPacket == null && rightPacket == null)
-                    break;
-                else if (rightPacket == null || (leftPacket == null &&
-                    leftPacket.transmissionStartTime < rightPacket.transmissionStartTime))
+                TransmittingPacket leftPacket = this.leftPacketBuffer.peek();
+                TransmittingPacket rightPacket = this.rightPacketBuffer.peek();
+                if (leftPacket == null) {
+                    if (rightPacket == null)
+                        return;
+                    else {
+                        this.currentlyTransmittingPacket = rightPacketBuffer.remove();
+                        this.rightBufferRemainingCapacity += rightPacket.packet.getSize();
+                    }
+                }
+                else if (rightPacket == null ||
+                    leftPacket.transmissionStartTime < rightPacket.transmissionStartTime)
                 {    
                     this.currentlyTransmittingPacket = leftPacketBuffer.remove();
                     this.leftBufferRemainingCapacity += leftPacket.packet.getSize();
@@ -155,7 +161,8 @@ public class Link implements Updatable {
                     this.rightBufferRemainingCapacity += rightPacket.packet.getSize();
                 }
 
-                this.currentlyTransmittingPacket.transmissionStartTime = RunSim.getCurrentTime();
+                this.currentlyTransmittingPacket.transmissionStartTime =
+                    RunSim.getCurrentTime();
                 this.bitsTransmitted = 0;
             }
 
