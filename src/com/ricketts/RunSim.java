@@ -13,8 +13,9 @@ public class RunSim
 {
     public RunSim() {}
 
+    private static int startMillis;
     public static int getCurrentTime() {
-        return (int) System.currentTimeMillis();
+        return (int) System.currentTimeMillis() - startMillis;
     }
 
     // I think all we have to update are hosts and flows, the others should always be the
@@ -23,15 +24,15 @@ public class RunSim
     // Right now runtimeMillis < 0 means never ending
     public static void run(final ArrayList<Link> links, final ArrayList<Host> hosts,
                             final Integer intervalTimeMillis, final Integer runtimeMillis) {
-        final int startMillis = getCurrentTime();
+        startMillis = getCurrentTime();
         final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         final Runnable updater = new Runnable() {
             public void run() {
                 for (Host h : hosts) {
-                    h.update(intervalTimeMillis, getCurrentTime() - startMillis);
+                    h.update(intervalTimeMillis, getCurrentTime());
                 }
                 for (Link l : links) {
-                    l.update(intervalTimeMillis, getCurrentTime() - startMillis);
+                    l.update(intervalTimeMillis, getCurrentTime());
                 }
             }
         };
