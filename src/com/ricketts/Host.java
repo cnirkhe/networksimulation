@@ -10,7 +10,7 @@ import java.util.ListIterator;
 public class Host extends Node {
     // Host properties
     private final static Integer initWindowSize = 50;
-    private final static Integer timeoutLength = 1000;
+    private final static Integer timeoutLength = 3000;
     
     // Host address
     private final Integer address;
@@ -135,10 +135,11 @@ public class Host extends Node {
         Integer packetID = packet.getID();
         // If we have it...
         if (flows != null) {
+            System.out.print("ACK packet " + packet.getID() + " received at host " + address);
+
             // Loop through all its active flows...
             for (ActiveFlow flow : flows) {
                 Integer nextPacketID = flow.packets.peek().getID();
-                System.out.println(nextPacketID);
                 // If the ACK is for a new packet, we know the destination has
                 // received packets at least up to that one
                 if (packetID > nextPacketID && packetID - 1 <= flow.maxPacketID) {
@@ -148,9 +149,10 @@ public class Host extends Node {
                     // Remove all the packets we know to have be received from
                     // the flow's queue
                     while (flow.packets.peek().getID() < packetID) {
-                        System.out.println("Removing packet " + flow.packets.peek().getID());
+                        System.out.print(" - Removing packet " + flow.packets.peek().getID());
                         flow.sendTimes.remove(flow.packets.remove().getID());
                     }
+                    System.out.println();
                     break;
                 }
                 // Otherwise the destination is still expecting the first
@@ -169,13 +171,12 @@ public class Host extends Node {
                 }
             }
         }
-
-        System.out.println("ACK packet " + packet.getID() +
-            " received at host " + address);
     }
 
     /* Handles the reception of setup packets. */
     private void receiveSetupPacket(SetupPacket packet) {
+        System.out.println("Setup packet " + packet.getID() + " received at host " + address);
+
         // Look for the source host in our HashMap
         LinkedList<Download> downloads = this.downloadsBySource.get(packet.getSource());
         // If there have already been downloads from this host, add another to the queue
@@ -187,14 +188,11 @@ public class Host extends Node {
             downloads.add(new Download(packet.getID(), packet.getMaxPacketID()));
             this.downloadsBySource.put(packet.getSource(), downloads);
         }
-
-        System.out.println("Setup packet " + packet.getID() +
-            " received at host " + address);
     }
 
     /* Handles the reception of data packets. */
     private void receiveDataPacket(DataPacket packet) {
-        //TODO Add analytics here
+        System.out.println("Data packet " + packet.getID() + " received at host " + address);
 
         // Look for the source host in our HashMap
         LinkedList<Download> downloads = this.downloadsBySource.get(packet.getSource());
@@ -203,7 +201,6 @@ public class Host extends Node {
         if (downloads != null) {
             // Look through them all for the one this packet's a part of
             for (Download download : downloads) {
-                System.out.println("Download " + packetID + ", " + download.nextPacketID + ", " + download.maxPacketID);
                 if (download.nextPacketID <= packetID && packetID <= download.maxPacketID) {
                     // If this was the next packet in the download...
                     if (download.nextPacketID.equals(packetID)) {
@@ -220,9 +217,6 @@ public class Host extends Node {
                 }
             }
         }
-
-        System.out.println("Data packet " + packet.getID() +
-            " received at host " + address);
     }
 
     /* Generic packet receiver. */
@@ -254,13 +248,7 @@ public class Host extends Node {
                     // timeout time has elapsed since it was sent, and
                     // retransmit if so
                     for (Integer packetID : flow.sendTimes.keySet()) {
-<<<<<<< HEAD
-                        if (flow.sendTimes.get(packetID) + timeoutLength >
-=======
-                        System.out.println(flow.sendTimes.get(packetID) + this.timeoutLength);
-                        System.out.println(RunSim.getCurrentTime());
-                        if (flow.sendTimes.get(packetID) + this.timeoutLength >
->>>>>>> origin/goalIsT0
+                        if (flow.sendTimes.get(packetID) + this.timeoutLength <
                             RunSim.getCurrentTime())
                         {
                             flow.sendTimes.put(packetID, RunSim.getCurrentTime());

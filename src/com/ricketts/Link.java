@@ -142,17 +142,18 @@ public class Link implements Updatable {
             if (this.currentlyTransmittingPacket == null) {
                 TransmittingPacket leftPacket = leftPacketBuffer.peek();
                 TransmittingPacket rightPacket = rightPacketBuffer.peek();
-                if (leftPacket == null) {
-                    if (rightPacket == null)
-                        break;
-                    this.currentlyTransmittingPacket = rightPacketBuffer.remove();
+                if (leftPacket == null && rightPacket == null)
+                    break;
+                else if (rightPacket == null ||
+                    leftPacket.transmissionStartTime < rightPacket.transmissionStartTime)
+                {    
+                    this.currentlyTransmittingPacket = leftPacketBuffer.remove();
+                    this.leftBufferRemainingCapacity += leftPacket.packet.getSize();
                 }
-                else if (rightPacket == null)
-                    this.currentlyTransmittingPacket = leftPacketBuffer.remove();
-                else if (leftPacket.transmissionStartTime < rightPacket.transmissionStartTime)
-                    this.currentlyTransmittingPacket = leftPacketBuffer.remove();
-                else
+                else {
                     this.currentlyTransmittingPacket = rightPacketBuffer.remove();
+                    this.rightBufferRemainingCapacity += rightPacket.packet.getSize();
+                }
 
                 this.currentlyTransmittingPacket.transmissionStartTime = RunSim.getCurrentTime();
                 this.bitsTransmitted = 0;
