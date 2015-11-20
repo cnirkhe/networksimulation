@@ -36,8 +36,6 @@ public class Host extends Node {
         public Integer windowSize;
         // ID of the last packet
         public Integer maxPacketID;
-        // ID of the next expected packet
-        public Integer nextPacketID;
         // Number of sequential identical ACKs received
         public Integer lastACKCount;
         // Packets left to send in the flow
@@ -264,11 +262,17 @@ public class Host extends Node {
                     // we can jump past them and fill up the rest of the window.
                     ListIterator<DataPacket> it =
                         flow.packets.listIterator(flow.sendTimes.size());
-                    DataPacket packet = it.next();
-                    while (packet.getID() < flow.nextPacketID + flow.windowSize) {
-                        this.link.addPacket(packet, this);
-                        flow.sendTimes.put(packet.getID(), RunSim.getCurrentTime());
-                        packet = it.next();
+                    if (it.hasNext()) {
+                        DataPacket packet = it.next();
+                        Integer nextPacketID = flow.packets.peek().getID();
+                        while (packet.getID() < nextPacketID + flow.windowSize) {
+                            this.link.addPacket(packet, this);
+                            flow.sendTimes.put(packet.getID(), RunSim.getCurrentTime());
+                            if (it.hasNext())
+                                packet = it.next();
+                            else
+                                break;
+                        }
                     }
                 }
             }

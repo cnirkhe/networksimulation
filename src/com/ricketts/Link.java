@@ -62,8 +62,8 @@ public class Link implements Updatable {
 
         this.leftPacketBuffer = new LinkedList<TransmittingPacket>();
         this.rightPacketBuffer = new LinkedList<TransmittingPacket>();
-        this.leftBufferRemainingCapacity = this.linkBuffer;
-        this.rightBufferRemainingCapacity = this.linkBuffer;
+        this.leftBufferRemainingCapacity = linkBuffer;
+        this.rightBufferRemainingCapacity = linkBuffer;
     }
 
     /* Constructs a disconnected Link. */
@@ -73,6 +73,11 @@ public class Link implements Updatable {
         this.linkRate = linkRate;
         this.linkDelay = linkDelay;
         this.linkBuffer = linkBuffer;
+
+        this.leftPacketBuffer = new LinkedList<TransmittingPacket>();
+        this.rightPacketBuffer = new LinkedList<TransmittingPacket>();
+        this.leftBufferRemainingCapacity = linkBuffer;
+        this.rightBufferRemainingCapacity = linkBuffer;
     }
 
     /* Accessor methods */

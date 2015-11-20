@@ -27,11 +27,11 @@ public class RunSim
         final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
         final Runnable updater = new Runnable() {
             public void run() {
-                for (Link l : links) {
-                    l.update(intervalTimeMillis, getCurrentTime() - startMillis);
-                }
                 for (Host h : hosts) {
                     h.update(intervalTimeMillis, getCurrentTime() - startMillis);
+                }
+                for (Link l : links) {
+                    l.update(intervalTimeMillis, getCurrentTime() - startMillis);
                 }
             }
         };
