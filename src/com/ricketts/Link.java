@@ -144,8 +144,8 @@ public class Link implements Updatable {
                 TransmittingPacket rightPacket = rightPacketBuffer.peek();
                 if (leftPacket == null && rightPacket == null)
                     break;
-                else if (rightPacket == null ||
-                    leftPacket.transmissionStartTime < rightPacket.transmissionStartTime)
+                else if (rightPacket == null || (leftPacket == null &&
+                    leftPacket.transmissionStartTime < rightPacket.transmissionStartTime))
                 {    
                     this.currentlyTransmittingPacket = leftPacketBuffer.remove();
                     this.leftBufferRemainingCapacity += leftPacket.packet.getSize();

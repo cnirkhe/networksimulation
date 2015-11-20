@@ -8,9 +8,9 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Main {
+    private static boolean DEBUG = false;
 
-    public static void main(String[] args)
-    {
+    public static void main(String[] args) {
         /**
          * For now I'm going to artifically construct the Network
          * TODO adjust to building the Network from a definition JSON
@@ -43,7 +43,20 @@ public class Main {
             }
         }
 
-        RunSim.run(links, hosts, 5, -1);
-
+        if (DEBUG) {
+            Integer currentTime = RunSim.getCurrentTime(), nextTime;
+            while (true) {
+                nextTime = RunSim.getCurrentTime();
+                for (Host h : hosts) {
+                    h.update(nextTime - currentTime, currentTime);
+                }
+                for (Link l : links) {
+                    l.update(nextTime - currentTime, currentTime);
+                }
+                currentTime = nextTime;
+            }
+        }
+        else
+            RunSim.run(links, hosts, 2, -1);
     }
 }

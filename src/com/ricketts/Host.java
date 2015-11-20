@@ -50,7 +50,7 @@ public class Host extends Node {
             host.totalGenPackets += this.packets.size();
             this.maxPacketID = host.totalGenPackets - 1;
             this.lastACKCount = 0;
-            this.sendTimes = new HashMap<>();
+            this.sendTimes = new HashMap<Integer, Integer>();
         }
     }
 
@@ -114,8 +114,8 @@ public class Host extends Node {
         if (flows != null) {
             ActiveFlow newFlow = new ActiveFlow(this, flow);
             flows.add(newFlow);
-            this.packetsToSend.add(new SetupPacket(newFlow.packets.peek().getID(), this, flow.getDestination(),
-                    newFlow.maxPacketID));
+            this.packetsToSend.add(new SetupPacket(newFlow.packets.peek().getID(), this,
+                flow.getDestination(), newFlow.maxPacketID));
         }
         // Otherwise create a queue and add the flow to it
         else {
@@ -123,8 +123,8 @@ public class Host extends Node {
             ActiveFlow newFlow = new ActiveFlow(this, flow);
             flows.add(newFlow);
             this.flowsByDestination.put(flow.getDestination(), flows);
-            this.packetsToSend.add(new SetupPacket(newFlow.packets.peek().getID(), this, flow.getDestination(),
-                    newFlow.maxPacketID));
+            this.packetsToSend.add(new SetupPacket(newFlow.packets.peek().getID(), this,
+                flow.getDestination(), newFlow.maxPacketID));
         }
     }
 
@@ -149,7 +149,8 @@ public class Host extends Node {
                     // Remove all the packets we know to have be received from
                     // the flow's queue
                     while (flow.packets.peek().getID() < packetID) {
-                        System.out.println("Packet " + flow.packets.peek().getID() + " in flow " + flow.flow.getID() + " received");
+                        System.out.println("Packet " + flow.packets.peek().getID() + " in flow "
+                            + flow.flow.getID() + " received");
                         flow.sendTimes.remove(flow.packets.remove().getID());
                     }
                     break;
@@ -160,12 +161,6 @@ public class Host extends Node {
                     // Increase the number of times the destination has reported
                     // a packet out of order
                     flow.lastACKCount++;
-                    // If we get three in a row, TCP FAST kicks in and the
-                    // packet is retransmitted
-                    if (flow.lastACKCount == 3) {
-                        packetsToSend.add(flow.packets.get(packetID - nextPacketID));
-                        flow.lastACKCount = 0;
-                    }
                     break;
                 }
             }
@@ -243,6 +238,15 @@ public class Host extends Node {
             for (LinkedList<ActiveFlow> flows : this.flowsByDestination.values()) {
                 // For each flow...
                 for (ActiveFlow flow : flows) {
+                    // If this packet has been ACKed three or more time, assume
+                    // it's been dropped and retransmit (TCP FAST)
+                    if (flow.lastACKCount >= 3) {
+                        System.out.println("TCP FAST");
+                        DataPacket packet = flow.packets.peek();
+                        flow.sendTimes.put(packet.getID(), RunSim.getCurrentTime());
+                        this.link.addPacket(packet, this);
+                        flow.lastACKCount = 0;
+                    }
                     // For each currently outstanding packet, check if the
                     // timeout time has elapsed since it was sent, and
                     // retransmit if so
@@ -250,6 +254,7 @@ public class Host extends Node {
                         if (flow.sendTimes.get(packetID) + this.timeoutLength <
                             RunSim.getCurrentTime())
                         {
+                            System.out.println("TCP RETRANSMIT");
                             flow.sendTimes.put(packetID, RunSim.getCurrentTime());
                             this.link.addPacket(flow.packets.get(packetID -
                                 flow.packets.peek().getID()), this);
