@@ -27,6 +27,8 @@ public class Main {
 
         // Make flows
         ArrayList<Flow> flows = ip.extractFlows(addressBook);
+        for (Flow flow : flows)
+            flow.getSource().addFlow(flow);
 
         // Add hosts to links
         Link link;
@@ -41,7 +43,7 @@ public class Main {
             }
         }
 
-        RunSim.run(links, hosts, 100, -1);
+        RunSim.run(links, hosts, 10, -1);
 
     }
 }

@@ -35,8 +35,6 @@ public class Host extends Node {
         public Integer windowSize;
         // ID of the last packet
         public Integer maxPacketID;
-        // ID of the next expected packet
-        public Integer nextPacketID;
         // Number of sequential identical ACKs received
         public Integer lastACKCount;
         // Packets left to send in the flow
@@ -49,7 +47,7 @@ public class Host extends Node {
             this.flow = flow;
             this.windowSize = initWindowSize;
             this.packets = flow.generateDataPackets(host.totalGenPackets);
-            host.totalGenPackets += packets.size();
+            host.totalGenPackets += this.packets.size();
             this.maxPacketID = host.totalGenPackets - 1;
             this.lastACKCount = 0;
             this.sendTimes = new HashMap<>();
@@ -113,13 +111,20 @@ public class Host extends Node {
         // Look for the destination host in our HashMap
         LinkedList<ActiveFlow> flows = this.flowsByDestination.get(flow.getDestination());
         // If we have it, add a new flow to the queue
-        if (flows != null)
-            flows.add(new ActiveFlow(this, flow));
+        if (flows != null) {
+            ActiveFlow newFlow = new ActiveFlow(this, flow);
+            flows.add(newFlow);
+            this.packetsToSend.add(new SetupPacket(newFlow.packets.peek().getID(), this, flow.getDestination(),
+                    newFlow.maxPacketID));
+        }
         // Otherwise create a queue and add the flow to it
         else {
             flows = new LinkedList<ActiveFlow>();
-            flows.add(new ActiveFlow(this, flow));
+            ActiveFlow newFlow = new ActiveFlow(this, flow);
+            flows.add(newFlow);
             this.flowsByDestination.put(flow.getDestination(), flows);
+            this.packetsToSend.add(new SetupPacket(newFlow.packets.peek().getID(), this, flow.getDestination(),
+                    newFlow.maxPacketID));
         }
     }
 
@@ -133,24 +138,24 @@ public class Host extends Node {
             // Loop through all its active flows...
             for (ActiveFlow flow : flows) {
                 Integer nextPacketID = flow.packets.peek().getID();
+                System.out.println(nextPacketID);
                 // If the ACK is for a new packet, we know the destination has
                 // received packets at least up to that one
                 if (packetID > nextPacketID && packetID - 1 <= flow.maxPacketID) {
                     // If that was the last ACK, discard the flow
-                    if (nextPacketID == flow.maxPacketID)
+                    if (nextPacketID.equals(flow.maxPacketID))
                         flows.remove(flow);
-                    // Otherwise, remove all the packets we know to have been
-                    // received from the flow's queue
-                    else {
-                        while (flow.packets.peek().getID() < packetID)
-                            flow.sendTimes.remove(flow.packets.remove().getID());
+                    // Remove all the packets we know to have be received from
+                    // the flow's queue
+                    while (flow.packets.peek().getID() < packetID) {
+                        System.out.println("Removing packet " + flow.packets.peek().getID());
+                        flow.sendTimes.remove(flow.packets.remove().getID());
                     }
-
                     break;
                 }
                 // Otherwise the destination is still expecting the first
                 //  packet in the queue
-                else if (packetID == nextPacketID) {
+                else if (packetID.equals(nextPacketID)) {
                     // Increase the number of times the destination has reported
                     // a packet out of order
                     flow.lastACKCount++;
@@ -160,7 +165,6 @@ public class Host extends Node {
                         packetsToSend.add(flow.packets.get(packetID - nextPacketID));
                         flow.lastACKCount = 0;
                     }
-
                     break;
                 }
             }
@@ -176,11 +180,11 @@ public class Host extends Node {
         LinkedList<Download> downloads = this.downloadsBySource.get(packet.getSource());
         // If there have already been downloads from this host, add another to the queue
         if (downloads != null)
-            downloads.add(new Download(packet.minPacketID, packet.maxPacketID));
+            downloads.add(new Download(packet.getID(), packet.getMaxPacketID()));
         // Otherwise create a queue and then add the download
         else {
             downloads = new LinkedList<Download>();
-            downloads.add(new Download(packet.minPacketID, packet.maxPacketID));
+            downloads.add(new Download(packet.getID(), packet.getMaxPacketID()));
             this.downloadsBySource.put(packet.getSource(), downloads);
         }
 
@@ -199,13 +203,14 @@ public class Host extends Node {
         if (downloads != null) {
             // Look through them all for the one this packet's a part of
             for (Download download : downloads) {
+                System.out.println("Download " + packetID + ", " + download.nextPacketID + ", " + download.maxPacketID);
                 if (download.nextPacketID <= packetID && packetID <= download.maxPacketID) {
                     // If this was the next packet in the download...
-                    if (download.nextPacketID == packetID) {
+                    if (download.nextPacketID.equals(packetID)) {
                         // Start expecting the following one
                         download.nextPacketID++;
                         // Or if this was the last packet in the download, discard it
-                        if (download.maxPacketID == packetID)
+                        if (download.maxPacketID.equals(packetID))
                             downloads.remove(download);
                     }
                     // Add an ACK packet to the queue of packets to send immediately
@@ -249,7 +254,13 @@ public class Host extends Node {
                     // timeout time has elapsed since it was sent, and
                     // retransmit if so
                     for (Integer packetID : flow.sendTimes.keySet()) {
+<<<<<<< HEAD
                         if (flow.sendTimes.get(packetID) + timeoutLength >
+=======
+                        System.out.println(flow.sendTimes.get(packetID) + this.timeoutLength);
+                        System.out.println(RunSim.getCurrentTime());
+                        if (flow.sendTimes.get(packetID) + this.timeoutLength >
+>>>>>>> origin/goalIsT0
                             RunSim.getCurrentTime())
                         {
                             flow.sendTimes.put(packetID, RunSim.getCurrentTime());
@@ -263,11 +274,17 @@ public class Host extends Node {
                     // we can jump past them and fill up the rest of the window.
                     ListIterator<DataPacket> it =
                         flow.packets.listIterator(flow.sendTimes.size());
-                    DataPacket packet = it.next();
-                    while (packet.getID() < flow.nextPacketID + flow.windowSize) {
-                        this.link.addPacket(packet, this);
-                        flow.sendTimes.put(packet.getID(), RunSim.getCurrentTime());
-                        packet = it.next();
+                    if (it.hasNext()) {
+                        DataPacket packet = it.next();
+                        Integer nextPacketID = flow.packets.peek().getID();
+                        while (packet.getID() < nextPacketID + flow.windowSize) {
+                            this.link.addPacket(packet, this);
+                            flow.sendTimes.put(packet.getID(), RunSim.getCurrentTime());
+                            if (it.hasNext())
+                                packet = it.next();
+                            else
+                                break;
+                        }
                     }
                 }
             }

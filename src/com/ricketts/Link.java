@@ -62,8 +62,8 @@ public class Link implements Updatable {
 
         this.leftPacketBuffer = new LinkedList<TransmittingPacket>();
         this.rightPacketBuffer = new LinkedList<TransmittingPacket>();
-        this.leftBufferRemainingCapacity = this.linkBuffer;
-        this.rightBufferRemainingCapacity = this.linkBuffer;
+        this.leftBufferRemainingCapacity = linkBuffer;
+        this.rightBufferRemainingCapacity = linkBuffer;
     }
 
     /* Constructs a disconnected Link. */
@@ -73,6 +73,11 @@ public class Link implements Updatable {
         this.linkRate = linkRate;
         this.linkDelay = linkDelay;
         this.linkBuffer = linkBuffer;
+
+        this.leftPacketBuffer = new LinkedList<TransmittingPacket>();
+        this.rightPacketBuffer = new LinkedList<TransmittingPacket>();
+        this.leftBufferRemainingCapacity = linkBuffer;
+        this.rightBufferRemainingCapacity = linkBuffer;
     }
 
     /* Accessor methods */
@@ -150,6 +155,7 @@ public class Link implements Updatable {
                     this.currentlyTransmittingPacket = rightPacketBuffer.remove();
 
                 this.currentlyTransmittingPacket.transmissionStartTime = RunSim.getCurrentTime();
+                this.bitsTransmitted = 0;
             }
 
             // Figure out when this packet's propagation delay would be over and
@@ -168,7 +174,7 @@ public class Link implements Updatable {
                 this.bitsTransmitted += packetBits;
                 // If we've transmitted the entire packet, transfer it to the
                 // host
-                if (this.bitsTransmitted == this.currentlyTransmittingPacket.packet.getSize()) {
+                if (this.bitsTransmitted.equals(this.currentlyTransmittingPacket.packet.getSize())) {
                     if (this.currentlyTransmittingPacket.direction == Direction.RIGHT)
                         this.rightNode.receivePacket(this.currentlyTransmittingPacket.packet);
                     else
@@ -176,7 +182,6 @@ public class Link implements Updatable {
                     
                     // We're done transmitting this packet
                     this.currentlyTransmittingPacket = null;
-                    this.bitsTransmitted = 0;
 
                     // Presumably we're in the "remainder" case, and we have to
                     // figure out how long transferring the end of the packet
