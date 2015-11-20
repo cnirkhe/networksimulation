@@ -135,7 +135,7 @@ public class Host extends Node {
         Integer packetID = packet.getID();
         // If we have it...
         if (flows != null) {
-            System.out.print("ACK packet " + packet.getID() + " received at host " + address);
+            // System.out.print("ACK packet " + packet.getID() + " received at host " + address);
 
             // Loop through all its active flows...
             for (ActiveFlow flow : flows) {
@@ -149,10 +149,9 @@ public class Host extends Node {
                     // Remove all the packets we know to have be received from
                     // the flow's queue
                     while (flow.packets.peek().getID() < packetID) {
-                        System.out.print(" - Removing packet " + flow.packets.peek().getID());
+                        System.out.println("Packet " + flow.packets.peek().getID() + " in flow " + flow.flow.getID() + " received");
                         flow.sendTimes.remove(flow.packets.remove().getID());
                     }
-                    System.out.println();
                     break;
                 }
                 // Otherwise the destination is still expecting the first
@@ -192,7 +191,7 @@ public class Host extends Node {
 
     /* Handles the reception of data packets. */
     private void receiveDataPacket(DataPacket packet) {
-        System.out.println("Data packet " + packet.getID() + " received at host " + address);
+        // System.out.println("Data packet " + packet.getID() + " received at host " + address);
 
         // Look for the source host in our HashMap
         LinkedList<Download> downloads = this.downloadsBySource.get(packet.getSource());

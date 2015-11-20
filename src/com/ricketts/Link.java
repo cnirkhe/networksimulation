@@ -132,9 +132,9 @@ public class Link implements Updatable {
      */
     public void update(Integer intervalTime, Integer overallTime) {
         // While there's time left in the interval,,,
-        Integer timeLeft = intervalTime, packetBits, endOfDelay;
+        Integer usageLeft = intervalTime * this.linkRate, packetBits, endOfDelay;
 
-        while (timeLeft > 0) {
+        while (usageLeft > 0) {
             // If there's no packet being currently transmitted, fetch one from
             // the left or right buffer. Preference is given to whichever buffer
             // has the packet at the front of its queue that's been waiting
@@ -163,14 +163,14 @@ public class Link implements Updatable {
             // it could start transferring to the node
             endOfDelay = this.currentlyTransmittingPacket.transmissionStartTime + linkDelay;
             if (endOfDelay > overallTime)
-                timeLeft = overallTime + intervalTime - endOfDelay;
+                usageLeft = (overallTime + intervalTime - endOfDelay) * this.linkRate;
 
             // If it reaches the node before the timestep is over, transmit as
             // much as possible
-            if (timeLeft > 0) {
+            if (usageLeft > 0) {
                 // We can either transmit a chunk of the packet, or all that
                 // remains of it
-                packetBits = Math.min(timeLeft * linkRate, 
+                packetBits = Math.min(usageLeft,
                     this.currentlyTransmittingPacket.packet.getSize() - this.bitsTransmitted);
                 this.bitsTransmitted += packetBits;
                 // If we've transmitted the entire packet, transfer it to the
@@ -183,15 +183,14 @@ public class Link implements Updatable {
                     
                     // We're done transmitting this packet
                     this.currentlyTransmittingPacket = null;
+                    this.bitsTransmitted = 0;
 
                     // Presumably we're in the "remainder" case, and we have to
                     // figure out how long transferring the end of the packet
                     // would take
-                    timeLeft -= packetBits / linkRate;
+                    usageLeft -= packetBits;
                 }
             }
-            else
-                break;
         }
     }
 }

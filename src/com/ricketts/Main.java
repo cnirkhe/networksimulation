@@ -43,7 +43,7 @@ public class Main {
             }
         }
 
-        RunSim.run(links, hosts, 10, -1);
+        RunSim.run(links, hosts, 5, -1);
 
     }
 }
