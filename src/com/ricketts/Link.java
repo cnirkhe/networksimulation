@@ -4,25 +4,32 @@ import java.lang.Math;
 import java.util.LinkedList;
 
 /**
- * Created by chinmay on 11/16/15.
+ * The Link is unlike a physical Link. Instead think of a Link as the physical link plus the buffers on either end.
+ * A link is defined as LEFT to RIGHT (the naming is arbitrary) but packets are sent in 1 direction at a time.
  */
 public class Link implements Updatable {
-    // Arbitrary orientations
+    /**
+     * Orientations for Packets flowing on the link
+     */
     private enum Direction {LEFT, RIGHT}
 
-    // Link ID
     private final Integer linkID;
-    // Link rate in bits per millisecond
+    /**
+     * Link rate in bits per millisecond
+     */
     private final Integer linkRate;
-    // Link delay in milliseconds
+    /**
+     * Link delay in milliseconds
+     */
     private final Integer linkDelay;
-    // Link buffer in bits
+    /**
+     * Link buffer in bits
+     */
     private final Integer linkBuffer;
 
-    // Nodes this link connects
     private Node leftNode, rightNode;
 
-    /*
+    /**
      * Data class associating a direction and start time with a packet being
      * transmitted on a link.
      */
@@ -31,26 +38,34 @@ public class Link implements Updatable {
         public Direction direction;
         public Integer transmissionStartTime;
 
-        // Constructor
-        public TransmittingPacket(Packet packet, Direction direction,
-            Integer transmissionStartTime) {
+        public TransmittingPacket(Packet packet, Direction direction, Integer transmissionStartTime) {
             this.packet = packet;
             this.direction = direction;
             this.transmissionStartTime = transmissionStartTime;
         }
     }
 
-    // Packet buffers on either end of the link
+    /**
+     * Packet buffers on either end of the link
+     */
     private LinkedList<TransmittingPacket> leftPacketBuffer, rightPacketBuffer;
-    // Remaining capacity in the two buffers, in bits
+    /**
+     * Remaining capacity in the two buffers, in bits
+     */
     private Integer leftBufferRemainingCapacity, rightBufferRemainingCapacity;
 
-    // Packet currently being transmitted
+    /**
+     * Packet currently being transmitted
+     */
     private TransmittingPacket currentlyTransmittingPacket;
-    // How much of the packet has been transmitted
+    /**
+     * How much of the packet has been transmitted
+     */
     private Integer bitsTransmitted;
 
-    /* Constructs a Link with empty buffers. */
+    /**
+     * Complete Constructor
+     */
     public Link(Integer linkID, Integer linkRate, Integer linkDelay,
         Integer linkBuffer, Node leftNode, Node rightNode) {
         this.linkID = linkID;
@@ -60,40 +75,32 @@ public class Link implements Updatable {
         this.leftNode = leftNode;
         this.rightNode = rightNode;
 
-        this.leftPacketBuffer = new LinkedList<TransmittingPacket>();
-        this.rightPacketBuffer = new LinkedList<TransmittingPacket>();
+        this.leftPacketBuffer = new LinkedList<>();
+        this.rightPacketBuffer = new LinkedList<>();
         this.leftBufferRemainingCapacity = linkBuffer;
         this.rightBufferRemainingCapacity = linkBuffer;
     }
 
-    /* Constructs a disconnected Link. */
+    /**
+     * Constructor without nodes defined
+     */
     public Link(Integer linkID, Integer linkRate, Integer linkDelay,
             Integer linkBuffer) {
-        this.linkID = linkID;
-        this.linkRate = linkRate;
-        this.linkDelay = linkDelay;
-        this.linkBuffer = linkBuffer;
-
-        this.leftPacketBuffer = new LinkedList<TransmittingPacket>();
-        this.rightPacketBuffer = new LinkedList<TransmittingPacket>();
-        this.leftBufferRemainingCapacity = linkBuffer;
-        this.rightBufferRemainingCapacity = linkBuffer;
+        this(linkID,linkRate, linkDelay, linkBuffer, null, null);
     }
 
-    /* Accessor methods */
     public Integer getID() { return this.linkID; }
     public Node getLeftNode() { return this.leftNode; }
     public Node getRightNode() { return this.rightNode; }
-
-    /* Modifier methods. */
     public void setLeftNode(Node node) { this.leftNode = node; }
     public void setRightNode(Node node) { this.rightNode = node; }
 
     /**
      * Check if the packet can fit in the buffer otherwise drop it
      * Return a Boolean if the Packet was added to the buffer
-     * @param packet
-     * @return false -> Dropped Packet, true -> Successfully Added to Buffer
+     * @param packet the packet being sent across the node
+     * @param sendingNode the node sending the packet
+     * @return false if Dropped Packet or true if Successfully Added to Buffer
      */
     public Boolean addPacket(Packet packet, Node sendingNode) {
         Integer newRemainingCapacity;
@@ -127,8 +134,12 @@ public class Link implements Updatable {
     }
 
     /**
-     * Updates a Link so that it performs all the transfers it should during a
-     * given timestep.
+     * Updates the state of the Link. This involves any of the following:
+     * (a) Updating the state of packets currently in transmission
+     * (b) Removing transmitted packets
+     * (c) Adding packets to the link from the link buffer
+     * @param intervalTime The time step of the simulation
+     * @param overallTime Overall simulation time
      */
     public void update(Integer intervalTime, Integer overallTime) {
         // While there's time left in the interval,,,

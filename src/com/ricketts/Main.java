@@ -8,18 +8,19 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Main {
-    private static boolean DEBUG = false;
+    public static boolean DEBUG = false;
 
     public static void main(String[] args) {
-        /**
-         * For now I'm going to artifically construct the Network
-         * TODO adjust to building the Network from a definition JSON
-         */
+
         String filename = new String("h0.json");
         InputParser ip = new InputParser();
-        ip.parse(filename);
+        ip.parseJSON(filename);
+
+        //First we derive all the links
         ArrayList<Link> links = ip.extractLinks();
         HashMap<Integer, Link> linkMap = ip.makeLinkMap(links);
+
+        //But these links don't have their nodes linked
 
         // Get hosts given links
         ArrayList<Host> hosts = ip.extractHosts(linkMap);
