@@ -2,6 +2,7 @@ package com.ricketts;
 
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -44,20 +45,22 @@ public class Main {
             }
         }
 
+        ArrayList<Updatable> updatableLinkedList = new ArrayList<>();
+        updatableLinkedList.addAll(hosts);
+        updatableLinkedList.addAll(links);
+
+
         if (DEBUG) {
             Integer currentTime = RunSim.getCurrentTime(), nextTime;
             while (true) {
                 nextTime = RunSim.getCurrentTime();
-                for (Host h : hosts) {
-                    h.update(nextTime - currentTime, currentTime);
-                }
-                for (Link l : links) {
-                    l.update(nextTime - currentTime, currentTime);
+                for(Updatable u : updatableLinkedList) {
+                    u.update(nextTime - currentTime, currentTime);
                 }
                 currentTime = nextTime;
             }
         }
         else
-            RunSim.run(links, hosts, 2, -1);
+            RunSim.run(updatableLinkedList, 2, -1);
     }
 }
