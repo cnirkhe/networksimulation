@@ -1,7 +1,7 @@
 package com.ricketts;
 
 /**
- * Created by cnirkhe on 11/17/15.
+ * Denotes any object which must get updated by the simulation on a periodic basis
  */
 public interface Updatable
 {

@@ -10,14 +10,22 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
- * Created by Elaine on 11/2/15.
+ * The InputParser is used to read the JSON definition for the parameters of the project and convert it to objects.
  */
 public class InputParser {
+
+    /**
+     * Java Library Object to ease parsing
+     */
     private JSONObject jsonObject;
 
-    public InputParser() {
-    }
+    public InputParser() {}
 
+    /**
+     * Reads file and generates equivalent string.
+     * @param filename include directory
+     * @return string equivalent
+     */
     public static String readFile(String filename) {
         String result = "";
         try {
@@ -36,41 +44,38 @@ public class InputParser {
     }
 
     /**
-     * Method to run for parsing
+     * Construct the JSON object to assist with parsing
      * @param fileLocation Location of JSON object in relation to
      */
-    public void parse(String fileLocation) {
-        jsonObject = buildJSONObject(fileLocation);
-    }
-
-    private JSONObject buildJSONObject(String fileLocation) {
-        JSONObject jsonObject = null;
+    public void parseJSON(String fileLocation) {
+        this.jsonObject = null;
         try {
             String jsonData = readFile(fileLocation);
-            jsonObject = new JSONObject(jsonData);
+            this.jsonObject = new JSONObject(jsonData);
         } catch (Exception e) {
             e.printStackTrace();
         }
-
-        return jsonObject;
     }
 
-
-    /*
-     * Given a hashMap of link ids and links, extract information about the hosts from the
-     * json.
+    /**
+     * Given a HashMap of Link Ids to Links and the JSON definition, Extract information about the Hosts
+     * @param linkMap HashMap of Link Ids to Links
+     * @return ArrayList of Hosts
      */
     public ArrayList<Host> extractHosts(HashMap<Integer, Link> linkMap) {
         ArrayList<Host> output = new ArrayList<>();
+
         try {
             JSONArray hostArray = jsonObject.getJSONObject("network").getJSONArray("hosts");
+
             for (int i = 0; i < hostArray.length(); ++i) {
                 JSONObject hostJson = hostArray.getJSONObject(i);
+
                 int address = hostJson.getInt("address");
                 int linkId = hostJson.getInt("link");
+                //Get Link using map
                 Link link = linkMap.get(linkId);
                 Host host = new Host(address, link);
-                // flows????
                 output.add(host);
             }
         } catch (JSONException e) {
@@ -79,6 +84,10 @@ public class InputParser {
         return output;
     }
 
+    /**
+     * Using the JSON definition, produce ArrayList of Links
+     * @return ArrayList of Links
+     */
     public ArrayList<Link> extractLinks() {
         ArrayList<Link> output = new ArrayList<>();
         try {
@@ -97,28 +106,6 @@ public class InputParser {
         }
         return output;
     }
-
-    // Given a flow map, extract packet info and place them in flows (wait how should this even
-    // work?)
-    // pretty sure our json shouldn't even have packets, awk
-    /*
-    public ArrayList<Packet> extractPackets(){
-        ArrayList<Packet> output = new ArrayList<>();
-        try {
-            JSONArray packetArray = jsonObject.getJSONObject("network").getJSONArray("packets");
-            for (int i = 0; i < packetArray.length(); ++i) {
-                JSONObject packetJson = packetArray.getJSONObject(i);
-                int size = packetJson.getInt("size");
-                int flowId = packetJson.getInt("flow");
-                int id = packetJson.getInt("id");
-                output.add(new DataPacket(id, size, flowId));
-            }
-        } catch (JSONException e) {
-            System.out.println(e);
-        }
-        return output;
-    }
-    */
 
     /* Given an address book and a list of packets, construct all the flows in
      * the network.

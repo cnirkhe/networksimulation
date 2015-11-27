@@ -4,10 +4,10 @@
         {"address": 2, "link": 1}
         ],
     "links" : [
-        {"id": 1, "capacity": 10, "transmissionDelay": 10, "bufferSize": 64}
+        {"id": 1, "capacity": 10000, "transmissionDelay": 10, "bufferSize": 64000}
         ],
     "flows" : [
-        {"id": 4, "source": 1, "destination": 2, "dataAmount": 20, "startTime": 1000},
-        {"id": 5, "source": 2, "destination": 1, "dataAmount": 20, "startTime": 1000}
+        {"id": 4, "source": 1, "destination": 2, "dataAmount": 160000000, "startTime": 1000},
+        {"id": 5, "source": 2, "destination": 1, "dataAmount": 160000000, "startTime": 1000}
         ]
 }}

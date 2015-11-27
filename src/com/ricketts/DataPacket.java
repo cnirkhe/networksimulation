@@ -1,12 +1,14 @@
 package com.ricketts;
 
 /**
- * Created by chinmay on 11/16/15.
+ * An instance of a Data packet.
+ * It contains no actual Data Itself.
+ * It has a fixed size of 1024 bytes.
  */
 public class DataPacket extends Packet {
-    private static final Integer DataPacketSize = 1024;
+    public static final Integer DataPacketSize = 1024;
 
-    public DataPacket(Integer packetID, Integer datasize, Flow parentFlow) {
-        super(packetID, datasize, parentFlow);
+    public DataPacket(Integer packetID, Flow parentFlow) {
+        super(packetID, DataPacketSize, parentFlow);
     }
 }

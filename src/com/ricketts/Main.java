@@ -9,18 +9,19 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class Main {
+    public static boolean DEBUG = false;
 
-    public static void main(String[] args)
-    {
-        /**
-         * For now I'm going to artifically construct the Network
-         * TODO adjust to building the Network from a definition JSON
-         */
+    public static void main(String[] args) {
+
         String filename = new String("h0.json");
         InputParser ip = new InputParser();
-        ip.parse(filename);
+        ip.parseJSON(filename);
+
+        //First we derive all the links
         ArrayList<Link> links = ip.extractLinks();
         HashMap<Integer, Link> linkMap = ip.makeLinkMap(links);
+
+        //But these links don't have their nodes linked
 
         // Get hosts given links
         ArrayList<Host> hosts = ip.extractHosts(linkMap);
@@ -28,6 +29,8 @@ public class Main {
 
         // Make flows
         ArrayList<Flow> flows = ip.extractFlows(addressBook);
+        for (Flow flow : flows)
+            flow.getSource().addFlow(flow);
 
         // Add hosts to links
         Link link;
@@ -42,12 +45,22 @@ public class Main {
             }
         }
 
-        ArrayList<Updatable> updatableList = new ArrayList<>();
+        ArrayList<Updatable> updatableLinkedList = new ArrayList<>();
+        updatableLinkedList.addAll(hosts);
+        updatableLinkedList.addAll(links);
 
-        updatableList.addAll(hosts);
-        updatableList.addAll(links);
 
-        RunSim.run(updatableList, 1, -1);
-
+        if (DEBUG) {
+            Integer currentTime = RunSim.getCurrentTime(), nextTime;
+            while (true) {
+                nextTime = RunSim.getCurrentTime();
+                for(Updatable u : updatableLinkedList) {
+                    u.update(nextTime - currentTime, currentTime);
+                }
+                currentTime = nextTime;
+            }
+        }
+        else
+            RunSim.run(updatableLinkedList, 2, -1);
     }
 }

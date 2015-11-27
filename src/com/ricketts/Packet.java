@@ -1,7 +1,13 @@
 package com.ricketts;
 
 /**
- * Created by chinmay on 11/16/15.
+ * This object represents the Packets that are sent between Nodes.
+ * Key properties of this simulated Packet include:
+ *  (a) Containing information on the size of the packet, but no physical data
+ *  (b) Containing information about the host and destination
+ *
+ *  Packets can be generated from Flows or individually
+ *  Note that Packets are abstract. They must be instantiated.
  */
 public abstract class Packet {
     private final Integer id;
@@ -18,12 +24,6 @@ public abstract class Packet {
 
     public Packet(Integer id, Integer size, Flow parentFlow) {
         this(id, size, parentFlow.getSource(), parentFlow.getDestination());
-    }
-
-    // Fix this, not sure what it's supposed to look like since the other
-    // constructors don't work either
-    public Packet(Integer id, Integer size) {
-        this(id, size, null, null);
     }
 
     public Integer getID() { return id; }
