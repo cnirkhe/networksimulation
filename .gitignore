@@ -17,5 +17,5 @@ hs_err_pid*
 /javadoc/
 
 # for the analytics produced
-.png
+*.png
 /graphs/

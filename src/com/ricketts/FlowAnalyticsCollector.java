@@ -50,10 +50,10 @@ public class FlowAnalyticsCollector {
 
     public void generateFlowGraphs() {
         LineChart_AWT flowRateGraph = new LineChart_AWT("Flow Rates", "Flow Rates", "Flow Rate (Mbps)",
-                flowRates, "graphs/Flow " + flowId + " Rate " + name + ".png", 888, 888);
+                flowRates, "Flow " + flowId + " Rate " + name + ".png", 888, 888);
         LineChart_AWT windowSizeGraph = new LineChart_AWT("Window Size", "Window Size", "Window Size (pkts)",
-                windowSizes, "graphs/Flow " + flowId + " Window Size " + name + ".png", 888, 888);
+                windowSizes, "Flow " + flowId + " Window Size " + name + ".png", 888, 888);
         LineChart_AWT packetDelayGraph = new LineChart_AWT("Packet Delay", "Packet Delay", "Packets Delay (ms)",
-                packetDelays, "graphs/Flow " + flowId + " Packet Delay " + name + ".png", 888, 888);
+                packetDelays, "Flow " + flowId + " Packet Delay " + name + ".png", 888, 888);
     }
 }
