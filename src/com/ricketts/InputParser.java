@@ -88,7 +88,7 @@ public class InputParser {
      * Using the JSON definition, produce ArrayList of Links
      * @return ArrayList of Links
      */
-    public ArrayList<Link> extractLinks() {
+    public ArrayList<Link> extractLinks(String filename) {
         ArrayList<Link> output = new ArrayList<>();
         try {
             JSONArray linkArray = jsonObject.getJSONObject("network").getJSONArray("links");
@@ -99,7 +99,7 @@ public class InputParser {
                 int transmissionDelay = linkJson.getInt("transmissionDelay");
                 int buffer = linkJson.getInt("bufferSize");
                 // add in left node and right node
-                output.add(new Link(id, capacity, transmissionDelay, buffer));
+                output.add(new Link(id, capacity, transmissionDelay, buffer, filename));
             }
         } catch (JSONException e) {
             System.out.println(e);
@@ -110,7 +110,7 @@ public class InputParser {
     /* Given an address book and a list of packets, construct all the flows in
      * the network.
      */
-    public ArrayList<Flow> extractFlows(HashMap<Integer, Node> addressBook) {
+    public ArrayList<Flow> extractFlows(HashMap<Integer, Node> addressBook, String filename) {
         ArrayList<Flow> output = new ArrayList<>();
         try {
             JSONArray flowArray = jsonObject.getJSONObject("network").getJSONArray("flows");
@@ -123,7 +123,7 @@ public class InputParser {
                 Host destination = (Host) addressBook.get(destinationId);
                 int dataAmount = flowJson.getInt("dataAmount");
                 int startTime = flowJson.getInt("startTime");
-                output.add(new Flow(id, source, destination, dataAmount, startTime));
+                output.add(new Flow(id, source, destination, dataAmount, startTime, filename));
             }
         } catch (JSONException e) {
             System.out.println(e);

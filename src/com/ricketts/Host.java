@@ -1,8 +1,10 @@
 package com.ricketts;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.ListIterator;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * A Host is a Node meant to simulate a source or sink of data. Hosts have only one Link. Flows begin at Hosts.
@@ -53,6 +55,11 @@ public class Host extends Node {
          */
         public HashMap<Integer, Integer> sendTimes;
 
+        /**
+         * Bits sent withn this update session
+         */
+        private AtomicInteger currBitsSent;
+
         public ActiveFlow(Host host, Flow flow) {
             this.flow = flow;
             this.windowSize = initWindowSize;
@@ -61,6 +68,7 @@ public class Host extends Node {
             this.maxPacketID = host.totalGenPackets - 1;
             this.lastACKCount = 0;
             this.sendTimes = new HashMap<>();
+            currBitsSent = new AtomicInteger(0);
         }
     }
 
@@ -258,6 +266,7 @@ public class Host extends Node {
             for (LinkedList<ActiveFlow> flows : this.flowsByDestination.values()) {
                 // For each flow...
                 for (ActiveFlow flow : flows) {
+                    flow.currBitsSent.set(0);
                     // If this packet has been ACKed three or more time, assume
                     // it's been dropped and retransmit (TCP FAST)
                     if (flow.lastACKCount >= 3) {
@@ -292,12 +301,16 @@ public class Host extends Node {
                         while (packet.getID() < nextPacketID + flow.windowSize) {
                             this.link.addPacket(packet, this);
                             flow.sendTimes.put(packet.getID(), RunSim.getCurrentTime());
+                            flow.currBitsSent.addAndGet(packet.getSize());
                             if (it.hasNext())
                                 packet = it.next();
                             else
                                 break;
                         }
                     }
+                    flow.flow.flowAnalyticsCollector.addToFlowRates(flow.currBitsSent.get() * 100000 / ((double) intervalTime / 1000), intervalTime);
+                    flow.flow.flowAnalyticsCollector.addToFlowRates(flow.windowSize, intervalTime);
+                    // not sure how to do packet delay
                 }
             }
         }
