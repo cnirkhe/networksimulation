@@ -1,6 +1,5 @@
 package com.ricketts;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.ListIterator;
@@ -138,6 +137,7 @@ public class Host extends Node {
         //Check if HashMap key is defined
         if (flows == null) {
             flows = new LinkedList<>();
+            flowsByDestination.put(flow.getDestination(), flows);
         }
         ActiveFlow newFlow = new ActiveFlow(this, flow);
         flows.add(newFlow);

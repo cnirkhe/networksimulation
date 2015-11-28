@@ -54,12 +54,12 @@ public class LinkAnalyticsCollector {
         }
         System.out.println(leftBufferOccupancy);
         LineChart_AWT leftBuff = new LineChart_AWT("Left Buffer", "Left Buffer Occupancy", "Buffer occupancy (pkts)",
-                leftBufferOccupancy, "Link " + linkId + " Left Buffer Occupancy " + name + ".png", 888, 888);
+                leftBufferOccupancy, "graphs/Link " + linkId + " Left Buffer Occupancy " + name + ".png", 888, 888);
         LineChart_AWT rightBuff = new LineChart_AWT("Right Buffer", "Right Buffer Occupancy", "Buffer occupancy (pkts)",
-                rightBufferOccupancy, "Link " + linkId + " Right Buffer Occupancy " + name + ".png", 888, 888);
+                rightBufferOccupancy, "graphs/Link " + linkId + " Right Buffer Occupancy " + name + ".png", 888, 888);
         LineChart_AWT packetLossGraph = new LineChart_AWT("Packet Loss", "Packet Loss", "Packet Loss (pkts)",
-                packetLoss, "Link " + linkId + " Packet Loss " + name + ".png", 888, 888);
+                packetLoss, "graphs/Link " + linkId + " Packet Loss " + name + ".png", 888, 888);
         LineChart_AWT linkRateGraph = new LineChart_AWT("Link Rates", "Link Rates", "Link Rate (Mbps)",
-                linkRates, "Link " + linkId + " Link Rate " + name + ".png", 888, 888);
+                linkRates, "graphs/Link " + linkId + " Link Rate " + name + ".png", 888, 888);
     }
 }
