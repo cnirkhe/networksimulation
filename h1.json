@@ -1,16 +1,16 @@
 {"network": {
   "hosts" : [
-    {"address": 1, "link": 1},
-    {"address": 2, "link": 2}
+    {"address": "h0", "link": 0},
+    {"address": "h1", "link": 1}
   ],
   "routers" : [
-    {"address": 1, "links": [0, 1]},
-    {"address": 2, "links": [1, 2]}
+    {"address": "r0", "links": [0, 1]}
   ],
   "links" : [
-    {"id": 0, "capacity": 10000, "transmissionDelay": 10, "bufferSize": 64000}
+    {"id": 0, "capacity": 10000, "transmissionDelay": 10, "bufferSize": 64000},
+    {"id": 1, "capacity": 10000, "transmissionDelay": 10, "bufferSize": 64000}
   ],
   "flows" : [
-    {"id": 1, "source": 1, "destination": 2, "dataAmount": 160000000, "startTime": 1000},
+    {"id": 1, "source": "h0", "destination": "h1", "dataAmount": 160000000, "startTime": 1000}
   ]
 }}

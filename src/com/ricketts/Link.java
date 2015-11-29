@@ -111,6 +111,7 @@ public class Link implements Updatable {
     public Integer getID() { return this.linkID; }
     public Node getLeftNode() { return this.leftNode; }
     public Node getRightNode() { return this.rightNode; }
+    public Integer getLinkDelay() { return this.linkDelay; }
     public void setLeftNode(Node node) { this.leftNode = node; }
     public void setRightNode(Node node) { this.rightNode = node; }
 

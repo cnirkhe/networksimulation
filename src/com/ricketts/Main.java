@@ -1,5 +1,6 @@
 package com.ricketts;
 
+import com.sun.tools.javac.util.Pair;
 import org.json.JSONObject;
 
 import java.lang.reflect.Array;
@@ -14,7 +15,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String filename = new String("h0.json");
+        String filename = new String("h1.json");
         String f2 = filename.substring(0, filename.length() - 5);
         InputParser ip = new InputParser();
         ip.parseJSON(filename);
@@ -44,8 +45,18 @@ public class Main {
         InputParser.addNodesToLinks(nodes);
 
         ArrayList<Updatable> updatableLinkedList = new ArrayList<>();
-        updatableLinkedList.addAll(hosts);
+        updatableLinkedList.addAll(nodes);
         updatableLinkedList.addAll(links);
+
+        //TODO Remove statically generated routing tables
+        if(filename.equals("h1.json")) {
+            HashMap<Node, Pair<Integer, Link>> routingTable = new HashMap<>();
+            //h0 -> l0, h1 -> l1
+            routingTable.put(hosts.get(0), Pair.of(1, links.get(0)));
+            routingTable.put(hosts.get(1), Pair.of(1, links.get(1)));
+            routers.get(0).setRoutingTable(routingTable);
+        }
+
 
 
         if (DEBUG) {
