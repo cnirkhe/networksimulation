@@ -1,6 +1,5 @@
 package com.ricketts;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.HashMap;
 import java.util.ListIterator;

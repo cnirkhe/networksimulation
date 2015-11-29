@@ -7,8 +7,10 @@
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="java-json" level="project" />
     <orderEntry type="library" name="org.codeartisans:org.json:20150729" level="project" />
     <orderEntry type="library" name="jcommon-1.0.23" level="project" />
+    <orderEntry type="library" name="org.json:json:20140107" level="project" />
+    <orderEntry type="library" name="org.jfree:jcommon:1.0.23" level="project" />
+    <orderEntry type="library" name="org.jfree:jfreechart:1.0.19" level="project" />
   </component>
 </module>
