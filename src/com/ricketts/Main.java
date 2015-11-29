@@ -54,17 +54,6 @@ public class Main {
         updatableLinkedList.addAll(nodes);
         updatableLinkedList.addAll(links);
 
-//        //TODO Remove statically generated routing tables
-//        if(filename.equals("h1.json")) {
-//            HashMap<Node, Pair<Integer, Link>> routingTable = new HashMap<>();
-//            //h0 -> l0, h1 -> l1
-//            routingTable.put(hosts.get(0), Pair.of(1, links.get(0)));
-//            routingTable.put(hosts.get(1), Pair.of(1, links.get(1)));
-//            routers.get(0).setRoutingTable(routingTable);
-//        }
-
-
-
         if (DEBUG) {
             Integer initialTime = RunSim.getCurrentTime();
             Integer currentTime = RunSim.getCurrentTime(), nextTime;
