@@ -3,12 +3,25 @@ package com.ricketts;
 import com.sun.tools.javac.util.Pair;
 
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.LinkedList;
-import java.util.Queue;
 
+/**
+ * A Router is a type of Node who's job is to process incoming packets and forward them to the best neighbor.
+ */
 public class Router extends Node
 {
+    /**
+     * The period at which the Routing Table is broadcast to all of its neighbors
+     */
+    private static final Integer TABLE_BROADCAST_PERIOD = 100;
+
+    /**
+     * The time left in the period before rebroadcast
+     */
+    private Integer timeLeftInPeriod;
+
     /**
      * The set of Links that this router is connected to
      */
@@ -16,7 +29,7 @@ public class Router extends Node
     /**
      * The set of Packets To Send to each of the respective Links
      */
-    private HashMap<Link, Queue<Packet>> packetsToSend;
+    private HashMap<Link, Deque<Packet>> packetsToSend;
     /**
      * Maps a Host to the respective distance, link to send along
      */
@@ -33,6 +46,7 @@ public class Router extends Node
         }
 
         routingTable = new HashMap<>();
+        timeLeftInPeriod = 0;
     }
 
     public ArrayList<Link> getLinks() {
@@ -45,12 +59,14 @@ public class Router extends Node
 
     /**
      * This method updates this routers routing table given the following information by the Bellman-Ford algorithm
-     * @param neighbor The neighboring node
      * @param connectingLink index of their connecting link
      * @param neighborRoutingTable and the routing table of the neighbor
      */
-    private void updateRoutingTable(Node neighbor, Link connectingLink,
+    private void updateRoutingTable(Link connectingLink,
                                     HashMap<Node,Pair<Integer,Link>> neighborRoutingTable) {
+        //Calculate who sent it
+        Node neighbor = connectingLink.getOtherEnd(this);
+
         Pair<Integer,Link> neighborInformation = Pair.of(connectingLink.getLinkDelay(), connectingLink);
         routingTable.put(neighbor, neighborInformation); //If data exists, overwrites but equivalent time as check and rewrite
 
@@ -66,28 +82,58 @@ public class Router extends Node
         }
     }
 
-
+    /**
+     * When a non-routingtablepacket is received it is forwarded along the appropriate link in accordance to the routing table.
+     * When a routingtablepacket is received it is used to recompute the routing table.
+     * @param packet The packet being receiving
+     * @param receivingLink The link that it was sent on
+     */
     public void receivePacket(Packet packet, Link receivingLink) {
-        Node destination = packet.getDestination();
-
-        //Check the routingtable for which link to send out these packets on
-        Pair<Integer, Link> bestPath = routingTable.get(destination);
-        if(bestPath == null) {
-            System.out.println("Destination unknown in routing table.");
+        if (packet instanceof RoutingTablePacket) {
+            RoutingTablePacket rpacket = (RoutingTablePacket) packet;
+            updateRoutingTable(receivingLink, rpacket.getRoutingTable());
         } else {
-            Link bestLink = bestPath.snd;
-            Queue<Packet> sendingQueue = packetsToSend.get(bestLink);
-            if (sendingQueue == null) {
-                System.out.println("Sending Queue doesn't exist! Uh-oh");
+            Node destination = packet.getDestination();
+
+            //Check the routingtable for which link to send out these packets on
+            Pair<Integer, Link> bestPath = routingTable.get(destination);
+            if (bestPath == null) {
+                System.out.println("Destination unknown in routing table.");
             } else {
-                sendingQueue.add(packet);
+                Link bestLink = bestPath.snd;
+                Deque<Packet> sendingQueue = packetsToSend.get(bestLink);
+                if (sendingQueue == null) {
+                    System.out.println("Sending Queue doesn't exist! Uh-oh");
+                } else {
+                    sendingQueue.add(packet);
+                }
             }
         }
     }
 
+    /**
+     * Forwards all the packets queued up along the router along their way.
+     * Pays no attention to any constraints.
+     * Periodically send the routing table along all links.
+     * @param intervalTime The time step of the simulation
+     * @param overallTime Overall simulation time
+     */
     public void update(Integer intervalTime, Integer overallTime) {
+
+        if(timeLeftInPeriod < 0) {
+            timeLeftInPeriod = TABLE_BROADCAST_PERIOD;
+            for(Link link : links) {
+                Node otherEnd = link.getOtherEnd(this);
+                RoutingTablePacket routingTablePacket = new RoutingTablePacket(this, otherEnd, routingTable);
+                packetsToSend.get(link).addFirst(routingTablePacket);
+            }
+        } else {
+            timeLeftInPeriod -= intervalTime;
+        }
+
+
         for(Link link : links) {
-            Queue<Packet> sendingQueue = packetsToSend.get(link);
+            Deque<Packet> sendingQueue = packetsToSend.get(link);
             if(sendingQueue == null) {
                 System.out.println("Sending Queue doesn't exist! Uh-oh");
             }

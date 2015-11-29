@@ -198,7 +198,7 @@ public class Host extends Node {
         else {
             downloads = new LinkedList<Download>();
             downloads.add(new Download(packet.getID(), packet.getMaxPacketID()));
-            this.downloadsBySource.put(packet.getSource(), downloads);
+            this.downloadsBySource.put((Host) packet.getSource(), downloads);
         }
     }
 
@@ -227,7 +227,7 @@ public class Host extends Node {
                     }
                     // Add an ACK packet to the queue of packets to send immediately
                     immediatePacketsToSend.add(new ACKPacket(download.nextPacketID,
-                        packet.getDestination(), packet.getSource()));
+                            (Host) packet.getDestination(), (Host) packet.getSource()));
                     break;
                 }
             }
@@ -246,6 +246,8 @@ public class Host extends Node {
             this.receiveSetupPacket((SetupPacket) packet);
         else if (packet instanceof DataPacket)
             this.receiveDataPacket((DataPacket) packet);
+        //else if (packet instanceof RoutingTablePacket)
+            //Do nothing
     }
 
     /**

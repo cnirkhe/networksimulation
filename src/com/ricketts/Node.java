@@ -1,7 +1,7 @@
 package com.ricketts;
 
 /**
- * Created by chinmay on 11/16/15.
+ * An abstract class to represent both Routers and Hosts.
  */
 public abstract class Node implements Updatable
 {
@@ -12,7 +12,6 @@ public abstract class Node implements Updatable
         this.address = address;
     }
 
-
     /**
      * This method is called when a packet is received by the node
      * It details how to handle the packets reception for every class
@@ -20,6 +19,12 @@ public abstract class Node implements Updatable
      * @param receivingLink The link that it was sent on
      */
     public abstract void receivePacket(Packet packet, Link receivingLink);
+
+    /**
+     * Update along the simulation.
+     * @param intervalTime The time step of the simulation
+     * @param overallTime Overall simulation time
+     */
     public abstract void update(Integer intervalTime, Integer overallTime);
 
     public String getAddress() {

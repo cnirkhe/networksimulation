@@ -81,6 +81,13 @@ public class Link implements Updatable {
 
     /**
      * Complete Constructor
+     * @param linkID
+     * @param linkRate
+     * @param linkDelay
+     * @param linkBuffer
+     * @param leftNode
+     * @param rightNode
+     * @param name
      */
     public Link(Integer linkID, Integer linkRate, Integer linkDelay,
         Integer linkBuffer, Node leftNode, Node rightNode, String name) {
@@ -102,6 +109,11 @@ public class Link implements Updatable {
 
     /**
      * Constructor without nodes defined
+     * @param linkID
+     * @param linkRate
+     * @param linkDelay
+     * @param linkBuffer
+     * @param name
      */
     public Link(Integer linkID, Integer linkRate, Integer linkDelay,
             Integer linkBuffer, String name) {
@@ -114,6 +126,17 @@ public class Link implements Updatable {
     public Integer getLinkDelay() { return this.linkDelay; }
     public void setLeftNode(Node node) { this.leftNode = node; }
     public void setRightNode(Node node) { this.rightNode = node; }
+
+
+    public Node getOtherEnd(Node oneEnd) {
+        if (oneEnd == leftNode) {
+            return rightNode;
+        } else if (oneEnd == rightNode) {
+            return leftNode;
+        } else {
+            return null;
+        }
+    }
 
     /**
      * Check if the packet can fit in the buffer otherwise drop it
