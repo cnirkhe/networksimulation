@@ -138,6 +138,7 @@ public class Host extends Node {
         //Check if HashMap key is defined
         if (flows == null) {
             flows = new LinkedList<>();
+            flowsByDestination.put(flow.getDestination(), flows);
         }
         ActiveFlow newFlow = new ActiveFlow(this, flow);
         flows.add(newFlow);
@@ -308,8 +309,8 @@ public class Host extends Node {
                                 break;
                         }
                     }
-                    flow.flow.flowAnalyticsCollector.addToFlowRates(flow.currBitsSent.get() * 100000 / ((double) intervalTime / 1000), intervalTime);
-                    flow.flow.flowAnalyticsCollector.addToFlowRates(flow.windowSize, intervalTime);
+                    flow.flow.flowAnalyticsCollector.addToFlowRates(flow.currBitsSent.get() * 100000 / ((double) intervalTime / 1000), overallTime);
+                    flow.flow.flowAnalyticsCollector.addToWindowSize(flow.windowSize, overallTime);
                     // not sure how to do packet delay
                 }
             }

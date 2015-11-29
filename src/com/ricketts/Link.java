@@ -240,12 +240,12 @@ public class Link implements Updatable {
         }
         System.out.println("done updooting");
         // Want rates per second
-        linkAnalyticsCollector.addToLeftBuffer((linkBuffer - leftBufferRemainingCapacity) / ((double) intervalTime / 1000), intervalTime);
+        linkAnalyticsCollector.addToLeftBuffer((linkBuffer - leftBufferRemainingCapacity) / ((double) intervalTime / 1000), overallTime);
         System.out.println((linkBuffer - leftBufferRemainingCapacity));
-        linkAnalyticsCollector.addToRightBuffer((linkBuffer - rightBufferRemainingCapacity) / ((double) intervalTime / 1000), intervalTime);
-        linkAnalyticsCollector.addToPacketLoss(packetDrops.get(), intervalTime);
+        linkAnalyticsCollector.addToRightBuffer((linkBuffer - rightBufferRemainingCapacity) / ((double) intervalTime / 1000), overallTime);
+        linkAnalyticsCollector.addToPacketLoss(packetDrops.get(), overallTime);
         // Want link rates in Mbps
-        linkAnalyticsCollector.addToLinkRates(totalBitsTransmitted.get() * 100000 / ((double) intervalTime / 1000), intervalTime);
+        linkAnalyticsCollector.addToLinkRates(totalBitsTransmitted.get() * 100000 / ((double) intervalTime / 1000), overallTime);
     }
 
     public void generateLinkGraphs() {
