@@ -1,0 +1,16 @@
+{"network": {
+  "hosts" : [
+    {"address": 1, "link": 1},
+    {"address": 2, "link": 2}
+  ],
+  "routers" : [
+    {"address": 1, "links": [0, 1]},
+    {"address": 2, "links": [1, 2]}
+  ],
+  "links" : [
+    {"id": 0, "capacity": 10000, "transmissionDelay": 10, "bufferSize": 64000}
+  ],
+  "flows" : [
+    {"id": 1, "source": 1, "destination": 2, "dataAmount": 160000000, "startTime": 1000},
+  ]
+}}

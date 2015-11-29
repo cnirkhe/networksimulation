@@ -21,32 +21,27 @@ public class Main {
 
         //First we derive all the links
         ArrayList<Link> links = ip.extractLinks(f2);
-        HashMap<Integer, Link> linkMap = ip.makeLinkMap(links);
+        HashMap<Integer, Link> linkMap = InputParser.makeLinkMap(links);
 
         //But these links don't have their nodes linked
 
-        // Get hosts given links
+        // Get hosts and routers given links
         ArrayList<Host> hosts = ip.extractHosts(linkMap);
-        HashMap<Integer, Node> addressBook = ip.makeNodeMap(hosts);
+        ArrayList<Router> routers = ip.extractRouters(linkMap);
+
+        ArrayList<Node> nodes = new ArrayList<>(hosts.size() + routers.size());
+        nodes.addAll(hosts);
+        nodes.addAll(routers);
+
+        HashMap<String, Node> addressBook = InputParser.makeNodeMap(nodes);
 
         // Make flows
         ArrayList<Flow> flows = ip.extractFlows(addressBook, f2);
         for (Flow flow : flows)
             flow.getSource().addFlow(flow);
 
-        // Add hosts to links
-        // TODO: add in routers when we're ready
-        Link link;
-        for (Host host : hosts) {
-            link = host.getLink();
-            if (link.getLeftNode() == null) {
-                link.setLeftNode(host);
-            } else if (link.getRightNode() == null) {
-                link.setRightNode(host);
-            } else {
-                System.out.println("Bad Network Definition.");
-            }
-        }
+        // Add nodes to links
+        InputParser.addNodesToLinks(nodes);
 
         ArrayList<Updatable> updatableLinkedList = new ArrayList<>();
         updatableLinkedList.addAll(hosts);

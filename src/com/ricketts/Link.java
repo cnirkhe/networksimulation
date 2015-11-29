@@ -222,9 +222,9 @@ public class Link implements Updatable {
                 // host
                 if (this.bitsTransmitted.equals(this.currentlyTransmittingPacket.packet.getSize())) {
                     if (this.currentlyTransmittingPacket.direction == Direction.RIGHT)
-                        this.rightNode.receivePacket(this.currentlyTransmittingPacket.packet);
+                        this.rightNode.receivePacket(this.currentlyTransmittingPacket.packet, this);
                     else
-                        this.leftNode.receivePacket(this.currentlyTransmittingPacket.packet);
+                        this.leftNode.receivePacket(this.currentlyTransmittingPacket.packet, this);
                     
                     // We're done transmitting this packet
                     this.totalBitsTransmitted.addAndGet(this.bitsTransmitted);
