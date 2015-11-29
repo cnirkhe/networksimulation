@@ -44,18 +44,24 @@ public class Main {
         // Add nodes to links
         InputParser.addNodesToLinks(nodes);
 
+        //After nodes are added to links, we can now setup routingtables
+        //Have each router setup its routing table based on its neighbors
+        for (Router router : routers) {
+            router.initializeRoutingTable();
+        }
+
         ArrayList<Updatable> updatableLinkedList = new ArrayList<>();
         updatableLinkedList.addAll(nodes);
         updatableLinkedList.addAll(links);
 
-        //TODO Remove statically generated routing tables
-        if(filename.equals("h1.json")) {
-            HashMap<Node, Pair<Integer, Link>> routingTable = new HashMap<>();
-            //h0 -> l0, h1 -> l1
-            routingTable.put(hosts.get(0), Pair.of(1, links.get(0)));
-            routingTable.put(hosts.get(1), Pair.of(1, links.get(1)));
-            routers.get(0).setRoutingTable(routingTable);
-        }
+//        //TODO Remove statically generated routing tables
+//        if(filename.equals("h1.json")) {
+//            HashMap<Node, Pair<Integer, Link>> routingTable = new HashMap<>();
+//            //h0 -> l0, h1 -> l1
+//            routingTable.put(hosts.get(0), Pair.of(1, links.get(0)));
+//            routingTable.put(hosts.get(1), Pair.of(1, links.get(1)));
+//            routers.get(0).setRoutingTable(routingTable);
+//        }
 
 
 

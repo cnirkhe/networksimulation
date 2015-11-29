@@ -45,7 +45,6 @@ public class Router extends Node
             packetsToSend.put(l, new LinkedList<Packet>());
         }
 
-        routingTable = new HashMap<>();
         timeLeftInPeriod = 0;
     }
 
@@ -55,6 +54,24 @@ public class Router extends Node
 
     public void setRoutingTable(HashMap<Node, Pair<Integer, Link>> routingTable) {
         this.routingTable = routingTable;
+    }
+
+    /**
+     * Setups minimum distance for its neighbors and itself
+     */
+    public void initializeRoutingTable() {
+        routingTable = new HashMap<>();
+
+        //Neighbors
+        for(Link link : links) {
+            Node neighbor = link.getOtherEnd(this);
+            Pair<Integer, Link> neighborInformation = Pair.of(link.getLinkDelay(), link);
+            routingTable.put(neighbor, neighborInformation);
+        }
+
+        //Itself
+        Pair<Integer, Link> selfInformation = Pair.of(Integer.valueOf(0), (Link) null);
+        routingTable.put(this, selfInformation);
     }
 
     /**
@@ -92,6 +109,8 @@ public class Router extends Node
         if (packet instanceof RoutingTablePacket) {
             RoutingTablePacket rpacket = (RoutingTablePacket) packet;
             updateRoutingTable(receivingLink, rpacket.getRoutingTable());
+
+            timeLeftInPeriod = 0; //Setup for rebroadcasting
         } else {
             Node destination = packet.getDestination();
 
@@ -120,7 +139,9 @@ public class Router extends Node
      */
     public void update(Integer intervalTime, Integer overallTime) {
 
-        if(timeLeftInPeriod < 0) {
+        //Broadcasting the Routing Table
+        if(timeLeftInPeriod <= 0) {
+            System.out.println("Router " + address + " is broadcasting its table.");
             timeLeftInPeriod = TABLE_BROADCAST_PERIOD;
             for(Link link : links) {
                 Node otherEnd = link.getOtherEnd(this);
