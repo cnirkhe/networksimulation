@@ -13,6 +13,17 @@ import java.util.concurrent.atomic.AtomicInteger;
  * A link is defined as LEFT to RIGHT (the naming is arbitrary) but packets are sent in 1 direction at a time.
  */
 public class Link implements Updatable {
+
+    /**
+     * This is the number of ms before the buffer delay is reestimated
+     */
+    private static final Integer ESTIMATE_BUFFER_DELAY_PERIOD = 200;
+
+    /**
+     * The time left in the period before reestimation
+     */
+    private Integer timeLeftInEstimationPeriod;
+
     /**
      * Orientations for Packets flowing on the link
      */
@@ -39,6 +50,25 @@ public class Link implements Updatable {
      */
     private AtomicInteger packetDrops;
     private LinkAnalyticsCollector linkAnalyticsCollector;
+
+    /**
+     * This is a count of the number of packets that passed through the buffer since the last time
+     * that the buffer delay was estimated. This number is used in said evaluation.
+     * In addition, it is refreshed after the estimation is finished.
+     */
+    private Integer numbLeftPacketsThroughBuffer, numbRightPacketsThroughBuffer;
+
+    /**
+     * This is a sum of the number of ms that packets have spent in the buffer before being sent along
+     * the link since the last time that the buffer delay was estimated. This number is used in said evaluation.
+     * In addition, it is refreshed after the estimation is finished.
+     */
+    private Integer sumLeftBufferTime, sumRightBufferTime;
+
+    /**
+     * The current best estimate at BufferDelay in ms.
+     */
+    private Double leftEstimatedBufferDelay, rightEstimatedBufferDelay;
 
     /**
      * Data class associating a direction and start time with a packet being
@@ -105,6 +135,16 @@ public class Link implements Updatable {
         this.packetDrops = new AtomicInteger(0);
         this.totalBitsTransmitted = new AtomicInteger(0);
         this.linkAnalyticsCollector = new LinkAnalyticsCollector(linkID, name);
+
+        //Initializations for estimating Buffer Delay
+        numbLeftPacketsThroughBuffer = 0;
+        numbRightPacketsThroughBuffer = 0;
+        sumLeftBufferTime = 0;
+        sumRightBufferTime = 0;
+        timeLeftInEstimationPeriod = ESTIMATE_BUFFER_DELAY_PERIOD;
+
+        leftEstimatedBufferDelay = 0.0;
+        rightEstimatedBufferDelay = 0.0;
     }
 
     /**
@@ -245,10 +285,19 @@ public class Link implements Updatable {
                 // If we've transmitted the entire packet, transfer it to the
                 // host
                 if (this.bitsTransmitted.equals(this.currentlyTransmittingPacket.packet.getSize())) {
-                    if (this.currentlyTransmittingPacket.direction == Direction.RIGHT)
+
+                    //Calculation of time spent in buffer
+                    Integer timeSpent = RunSim.getCurrentTime() - currentlyTransmittingPacket.transmissionStartTime;
+
+                    if (this.currentlyTransmittingPacket.direction == Direction.RIGHT) {
                         this.rightNode.receivePacket(this.currentlyTransmittingPacket.packet, this);
-                    else
+                        numbRightPacketsThroughBuffer++;
+                        sumRightBufferTime += timeSpent;
+                    } else {
                         this.leftNode.receivePacket(this.currentlyTransmittingPacket.packet, this);
+                        numbLeftPacketsThroughBuffer++;
+                        sumLeftBufferTime += timeSpent;
+                    }
                     
                     // We're done transmitting this packet
                     this.totalBitsTransmitted.addAndGet(this.bitsTransmitted);
@@ -270,9 +319,52 @@ public class Link implements Updatable {
         linkAnalyticsCollector.addToPacketLoss(packetDrops.get(), intervalTime);
         // Want link rates in Mbps
         linkAnalyticsCollector.addToLinkRates(totalBitsTransmitted.get() * 100000 / ((double) intervalTime / 1000), intervalTime);
+
+        //estimation of sent packets
+        if (timeLeftInEstimationPeriod <= 0 ) {
+            leftEstimatedBufferDelay = ((double) sumRightBufferTime) / numbLeftPacketsThroughBuffer;
+            rightEstimatedBufferDelay = ((double) sumLeftBufferTime) / numbRightPacketsThroughBuffer;
+
+            numbLeftPacketsThroughBuffer = 0;
+            numbRightPacketsThroughBuffer = 0;
+            sumLeftBufferTime = 0;
+            sumRightBufferTime = 0;
+            timeLeftInEstimationPeriod = ESTIMATE_BUFFER_DELAY_PERIOD;
+        } else {
+            timeLeftInEstimationPeriod -= intervalTime;
+        }
     }
 
     public void generateLinkGraphs() {
         linkAnalyticsCollector.generateLinkGraphs();
+    }
+
+    /**
+     * Calculate the estimated buffer delay in ms for given direciton
+     * @param direction
+     * @return in ms
+     */
+    public Double getEstimatedBufferDelay(Direction direction) {
+        if(direction == Direction.LEFT) {
+            return leftEstimatedBufferDelay;
+        } else {
+            return rightEstimatedBufferDelay;
+        }
+    }
+
+    /**
+     * Calculate the estimated buffer delay in ms eminating from the Node
+     * If the node is not part of the link, return -1.0;
+     * @param node
+     * @return
+     */
+    public Double getEstimatedBufferDelay(Node node) {
+        if (node == leftNode) {
+            return getEstimatedBufferDelay(Direction.RIGHT);
+        } else if (node == rightNode) {
+            return getEstimatedBufferDelay(Direction.LEFT);
+        } else {
+            return -1.0;
+        }
     }
 }

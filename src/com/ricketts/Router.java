@@ -33,7 +33,7 @@ public class Router extends Node
     /**
      * Maps a Host to the respective distance, link to send along
      */
-    private HashMap<Node, Pair<Integer, Link>> routingTable;
+    private HashMap<Node, Pair<Double, Link>> routingTable;
 
     public Router(String address, ArrayList<Link> links) {
         super(address);
@@ -52,10 +52,6 @@ public class Router extends Node
         return links;
     }
 
-    public void setRoutingTable(HashMap<Node, Pair<Integer, Link>> routingTable) {
-        this.routingTable = routingTable;
-    }
-
     /**
      * Setups minimum distance for its neighbors and itself
      */
@@ -65,12 +61,12 @@ public class Router extends Node
         //Neighbors
         for(Link link : links) {
             Node neighbor = link.getOtherEnd(this);
-            Pair<Integer, Link> neighborInformation = Pair.of(link.getLinkDelay(), link);
+            Pair<Double, Link> neighborInformation = Pair.of(link.getLinkDelay().doubleValue(), link);
             routingTable.put(neighbor, neighborInformation);
         }
 
         //Itself
-        Pair<Integer, Link> selfInformation = Pair.of(Integer.valueOf(0), (Link) null);
+        Pair<Double, Link> selfInformation = Pair.of(Double.valueOf(0.0), (Link) null);
         routingTable.put(this, selfInformation);
     }
 
@@ -80,18 +76,18 @@ public class Router extends Node
      * @param neighborRoutingTable and the routing table of the neighbor
      */
     private void updateRoutingTable(Link connectingLink,
-                                    HashMap<Node,Pair<Integer,Link>> neighborRoutingTable) {
+                                    HashMap<Node,Pair<Double,Link>> neighborRoutingTable) {
         //Calculate who sent it
         Node neighbor = connectingLink.getOtherEnd(this);
 
-        Pair<Integer,Link> neighborInformation = Pair.of(connectingLink.getLinkDelay(), connectingLink);
-        routingTable.put(neighbor, neighborInformation); //If data exists, overwrites but equivalent time as check and rewrite
+        Pair<Double, Link> neighborInformation = Pair.of(connectingLink.getLinkDelay() + connectingLink.getEstimatedBufferDelay(this), connectingLink);
 
         // Now we update our routing table using the triangle inequality and all of the information in the neighbor's routing table
         for( Node router : neighborRoutingTable.keySet()) {
-            Pair<Integer, Link> routerInformation = neighborRoutingTable.get(router);
-            Pair<Integer, Link> myCurrentInformation = routingTable.getOrDefault(router, Pair.of(Integer.MAX_VALUE, (Link) null));
-            if(routerInformation.fst + neighborInformation.fst < myCurrentInformation.fst) {
+            Pair<Double, Link> routerInformation = neighborRoutingTable.get(router);
+            Pair<Double, Link> myCurrentInformation = routingTable.getOrDefault(router, Pair.of(Double.MAX_VALUE, (Link) null));
+            //If our ideal path already goes through the neighbor router or the path through the neighbor is better
+            if(myCurrentInformation.snd == connectingLink || routerInformation.fst + neighborInformation.fst < myCurrentInformation.fst) {
                 //Change the routing to go through neighbor router
                 myCurrentInformation = Pair.of(routerInformation.fst + neighborInformation.fst, connectingLink);
                 routingTable.put(router, myCurrentInformation);
@@ -109,13 +105,11 @@ public class Router extends Node
         if (packet instanceof RoutingTablePacket) {
             RoutingTablePacket rpacket = (RoutingTablePacket) packet;
             updateRoutingTable(receivingLink, rpacket.getRoutingTable());
-
-            timeLeftInPeriod = 0; //Setup for rebroadcasting
         } else {
             Node destination = packet.getDestination();
 
             //Check the routingtable for which link to send out these packets on
-            Pair<Integer, Link> bestPath = routingTable.get(destination);
+            Pair<Double, Link> bestPath = routingTable.get(destination);
             if (bestPath == null) {
                 System.out.println("Destination unknown in routing table.");
             } else {
