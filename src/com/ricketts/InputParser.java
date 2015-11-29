@@ -8,6 +8,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 
 /**
  * The InputParser is used to read the JSON definition for the parameters of the project and convert it to objects.
@@ -71,12 +72,47 @@ public class InputParser {
             for (int i = 0; i < hostArray.length(); ++i) {
                 JSONObject hostJson = hostArray.getJSONObject(i);
 
-                int address = hostJson.getInt("address");
+                String address = hostJson.getString("address");
                 int linkId = hostJson.getInt("link");
                 //Get Link using map
                 Link link = linkMap.get(linkId);
                 Host host = new Host(address, link);
                 output.add(host);
+            }
+        } catch (JSONException e) {
+            System.out.println(e);
+        }
+        return output;
+    }
+
+    /**
+     * Given a HashMap of Link Ids to Links and the JSON definition, Extract information about the Hosts
+     * @param linkMap HashMap of Link Ids to Links
+     * @return ArrayList of Hosts
+     */
+    public ArrayList<Router> extractRouters(HashMap<Integer, Link> linkMap) {
+        ArrayList<Router> output = new ArrayList<>();
+
+        try {
+            JSONArray routerArray = jsonObject.getJSONObject("network").getJSONArray("routers");
+
+            for (int i = 0; i < routerArray.length(); ++i) {
+                JSONObject routerJson = routerArray.getJSONObject(i);
+
+                String address = routerJson.getString("address");
+
+                JSONArray linksJson = routerJson.getJSONArray("links");
+                ArrayList<Link> links = new ArrayList<>(linksJson.length());
+
+                for(int j = 0; j < linksJson.length(); ++j) {
+                    int linkId = linksJson.getInt(j);
+                    //Get Link using map
+                    Link link = linkMap.get(linkId);
+                    links.add(link);
+                }
+
+                Router router = new Router(address, links);
+                output.add(router);
             }
         } catch (JSONException e) {
             System.out.println(e);
@@ -110,16 +146,16 @@ public class InputParser {
     /* Given an address book and a list of packets, construct all the flows in
      * the network.
      */
-    public ArrayList<Flow> extractFlows(HashMap<Integer, Node> addressBook, String filename) {
+    public ArrayList<Flow> extractFlows(HashMap<String, Node> addressBook, String filename) {
         ArrayList<Flow> output = new ArrayList<>();
         try {
             JSONArray flowArray = jsonObject.getJSONObject("network").getJSONArray("flows");
             for (int i = 0; i < flowArray.length(); ++i) {
                 JSONObject flowJson = flowArray.getJSONObject(i);
                 int id = flowJson.getInt("id");
-                int sourceId = flowJson.getInt("source");
+                String sourceId = flowJson.getString("source");
                 Host source = (Host) addressBook.get(sourceId);
-                int destinationId = flowJson.getInt("destination");
+                String destinationId = flowJson.getString("destination");
                 Host destination = (Host) addressBook.get(destinationId);
                 int dataAmount = flowJson.getInt("dataAmount");
                 int startTime = flowJson.getInt("startTime");
@@ -131,34 +167,7 @@ public class InputParser {
         return output;
     }
 
-    // Given a hashmaps of links and ids, extract the router data, including
-    // making a list of links it's attached to.
-    /*
-    public ArrayList<Router> extractRouters(HashMap<Integer, Link> links) {
-        ArrayList<Router> output = new ArrayList<>();
-        try {
-            JSONArray routerArray = jsonObject.getJSONObject("network").getJSONArray("routers");
-            for (int i = 0; i < routerArray.length(); ++i) {
-                JSONObject routerJson = routerArray.getJSONObject(i);
-                int address = routerJson.getInt("address");
-                JSONArray linkArray = routerJson.getJSONArray("links");
-                ArrayList<Link> linkList = new ArrayList<Link>();
-                for (int j = 0; j < linkArray.length(); ++j) {
-                    linkList.add(links.get(linkArray.getInt(j)));
-                }
-                output.add(new Router(address, linkList));
-            }
-        } catch (JSONException e) {
-            System.out.println(e);
-        }
-        return output;
-    }
-    */
-
-    // Attach links to their left and right nodes..... hmmm
-
-    // Create a hashmap of (id, link) pairs
-    public HashMap<Integer, Link> makeLinkMap(ArrayList<Link> links) {
+    public static HashMap<Integer, Link> makeLinkMap(ArrayList<Link> links) {
         HashMap<Integer, Link> output = new HashMap<>();
         for (Link link : links) {
             output.put(link.getID(), link);
@@ -167,7 +176,7 @@ public class InputParser {
     }
 
     // Create a hashmap of (flow_id, flow) pairs
-    public HashMap<Integer, Flow> makeFlowMap(ArrayList<Flow> flows) {
+    public static HashMap<Integer, Flow> makeFlowMap(ArrayList<Flow> flows) {
         HashMap<Integer, Flow> output = new HashMap<>();
         for (Flow f : flows) {
             output.put(f.getID(), f);
@@ -175,27 +184,48 @@ public class InputParser {
         return output;
     }
 
-    // Create an address book of routers and hosts.
-    /*
-    public HashMap<Integer, Node> makeNodeMap(ArrayList<Router> routers,
-                                              ArrayList<Host> hosts) {
-        HashMap<Integer, Node> output = new HashMap<>();
-        for (Router router : routers) {
-            output.put(router.getAddress(), router);
-        }
-        for (Host host : hosts) {
-            output.put(host.getAddress(), host);
+
+    /**
+     * Produce a addressbook of addresses to Nodes
+     * @param nodes
+     * @return
+     */
+    public static HashMap<String, Node> makeNodeMap(ArrayList<Node> nodes) {
+        HashMap<String, Node> output = new HashMap<>();
+        for (Node node : nodes) {
+            output.put(node.getAddress(), node);
         }
         return output;
     }
-    */
 
-    // temporary: addressbook of just hosts
-    public HashMap<Integer, Node> makeNodeMap(ArrayList<Host> hosts) {
-        HashMap<Integer, Node> output = new HashMap<>();
-        for (Host host : hosts) {
-            output.put(host.getAddress(), host);
+    private static void setNodeOnLink(Link link, Node node)
+    {
+        if (link.getLeftNode() == null) {
+            link.setLeftNode(node);
+        } else if (link.getRightNode() == null) {
+            link.setRightNode(node);
+        } else {
+            System.out.println("Bad Network Definition.");
         }
-        return output;
+    }
+
+    public static void addNodesToLinks(ArrayList<Node> nodes)
+    {
+        for(Node node : nodes) {
+            if(node instanceof Host) {
+                Host host = (Host) node;
+                Link link = host.getLink();
+                setNodeOnLink(link, node);
+            }
+            else if (node instanceof Router) {
+                Router router = (Router) node;
+                for(Link link : router.getLinks()) {
+                    setNodeOnLink(link, node);
+                }
+            }
+            else {
+                System.out.println("Bad Network Definition.");
+            }
+        }
     }
 }
