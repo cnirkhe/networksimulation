@@ -1,10 +1,5 @@
 package com.ricketts;
 
-import org.jfree.data.category.DefaultCategoryDataset;
-
-import java.lang.Math;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
