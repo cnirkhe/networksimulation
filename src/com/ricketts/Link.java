@@ -1,7 +1,12 @@
 package com.ricketts;
 
+import org.jfree.data.category.DefaultCategoryDataset;
+
 import java.lang.Math;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The Link is unlike a physical Link. Instead think of a Link as the physical link plus the buffers on either end.
@@ -28,6 +33,12 @@ public class Link implements Updatable {
     private final Integer linkBuffer;
 
     private Node leftNode, rightNode;
+
+    /**
+     * Packet drops for current interval
+     */
+    private AtomicInteger packetDrops;
+    private LinkAnalyticsCollector linkAnalyticsCollector;
 
     /**
      * Data class associating a direction and start time with a packet being
@@ -64,10 +75,15 @@ public class Link implements Updatable {
     private Integer bitsTransmitted;
 
     /**
+     * How many bits have been transmitted in the total period
+     */
+    private AtomicInteger totalBitsTransmitted;
+
+    /**
      * Complete Constructor
      */
     public Link(Integer linkID, Integer linkRate, Integer linkDelay,
-        Integer linkBuffer, Node leftNode, Node rightNode) {
+        Integer linkBuffer, Node leftNode, Node rightNode, String name) {
         this.linkID = linkID;
         this.linkRate = linkRate;
         this.linkDelay = linkDelay;
@@ -79,14 +95,17 @@ public class Link implements Updatable {
         this.rightPacketBuffer = new LinkedList<>();
         this.leftBufferRemainingCapacity = linkBuffer;
         this.rightBufferRemainingCapacity = linkBuffer;
+        this.packetDrops = new AtomicInteger(0);
+        this.totalBitsTransmitted = new AtomicInteger(0);
+        this.linkAnalyticsCollector = new LinkAnalyticsCollector(linkID, name);
     }
 
     /**
      * Constructor without nodes defined
      */
     public Link(Integer linkID, Integer linkRate, Integer linkDelay,
-            Integer linkBuffer) {
-        this(linkID,linkRate, linkDelay, linkBuffer, null, null);
+            Integer linkBuffer, String name) {
+        this(linkID,linkRate, linkDelay, linkBuffer, null, null, name);
     }
 
     public Integer getID() { return this.linkID; }
@@ -111,7 +130,7 @@ public class Link implements Updatable {
             if (newRemainingCapacity >= 0) {
                 // If so, add it and update the remaining capacity
                 leftPacketBuffer.add(new TransmittingPacket(packet, Direction.RIGHT,
-                    RunSim.getCurrentTime()));
+                        RunSim.getCurrentTime()));
                 leftBufferRemainingCapacity = newRemainingCapacity;
                 return true;
             }
@@ -130,6 +149,8 @@ public class Link implements Updatable {
         else
             System.out.println("addPacket() from unconnected node");
 
+        // We dropped this packet
+        packetDrops.incrementAndGet();
         return false;
     }
 
@@ -142,6 +163,10 @@ public class Link implements Updatable {
      * @param overallTime Overall simulation time
      */
     public void update(Integer intervalTime, Integer overallTime) {
+        System.out.println("updating");
+        // Reset packets drops and total bits transmitted for new interval
+        packetDrops.set(0);
+        totalBitsTransmitted.set(0);
         // While there's time left in the interval,,,
         Integer usageLeft = intervalTime * this.linkRate, packetBits, endOfDelay;
 
@@ -154,8 +179,10 @@ public class Link implements Updatable {
                 TransmittingPacket leftPacket = this.leftPacketBuffer.peek();
                 TransmittingPacket rightPacket = this.rightPacketBuffer.peek();
                 if (leftPacket == null) {
-                    if (rightPacket == null)
+                    if (rightPacket == null) {
+                        System.out.println("null shit");
                         return;
+                    }
                     else {
                         this.currentlyTransmittingPacket = rightPacketBuffer.remove();
                         this.rightBufferRemainingCapacity += rightPacket.packet.getSize();
@@ -200,6 +227,7 @@ public class Link implements Updatable {
                         this.leftNode.receivePacket(this.currentlyTransmittingPacket.packet);
                     
                     // We're done transmitting this packet
+                    this.totalBitsTransmitted.addAndGet(this.bitsTransmitted);
                     this.currentlyTransmittingPacket = null;
                     this.bitsTransmitted = 0;
 
@@ -210,5 +238,17 @@ public class Link implements Updatable {
                 }
             }
         }
+        System.out.println("done updooting");
+        // Want rates per second
+        linkAnalyticsCollector.addToLeftBuffer((linkBuffer - leftBufferRemainingCapacity) / ((double) intervalTime / 1000), overallTime);
+        System.out.println((linkBuffer - leftBufferRemainingCapacity));
+        linkAnalyticsCollector.addToRightBuffer((linkBuffer - rightBufferRemainingCapacity) / ((double) intervalTime / 1000), overallTime);
+        linkAnalyticsCollector.addToPacketLoss(packetDrops.get(), overallTime);
+        // Want link rates in Mbps
+        linkAnalyticsCollector.addToLinkRates(totalBitsTransmitted.get() * 100000 / ((double) intervalTime / 1000), overallTime);
+    }
+
+    public void generateLinkGraphs() {
+        linkAnalyticsCollector.generateLinkGraphs();
     }
 }

@@ -1,5 +1,6 @@
 package com.ricketts;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 /**
@@ -12,21 +13,25 @@ public class Flow {
     private Integer id;
     private Host source;
     private Host destination;
+    public FlowAnalyticsCollector flowAnalyticsCollector;
     /**
      * dataSize is measured in bits. Total data sent over all packets.
      */
     private Integer dataSize;
+
     /**
      * Measured in milliseconds. Denotes when relative to the global time this flow should initiate.
      */
     private Integer startTime;
 
-    public Flow(Integer id, Host source, Host destination, Integer dataSize, Integer startTime) {
+    public Flow(Integer id, Host source, Host destination, Integer dataSize, Integer startTime,
+                String name) {
         this.id = id;
         this.source = source;
         this.destination = destination;
         this.dataSize = dataSize;
         this.startTime = startTime;
+        this.flowAnalyticsCollector = new FlowAnalyticsCollector(this.id, name);
     }
 
     public Host getSource() { return this.source; }
@@ -62,5 +67,9 @@ public class Flow {
         }
         
         return dataPackets;
+    }
+
+    public void generateFlowGraphs() {
+        flowAnalyticsCollector.generateFlowGraphs();
     }
 }
