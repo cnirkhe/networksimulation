@@ -1,10 +1,5 @@
 package com.ricketts;
 
-import org.jfree.data.category.DefaultCategoryDataset;
-
-import java.lang.Math;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -13,6 +8,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * A link is defined as LEFT to RIGHT (the naming is arbitrary) but packets are sent in 1 direction at a time.
  */
 public class Link implements Updatable {
+
+    private final Integer BUFFER_DELAY_PERIOD = 2000;
+
+    private Integer timeSinceReBufferDelay;
+
     /**
      * Orientations for Packets flowing on the link
      */
@@ -33,6 +33,15 @@ public class Link implements Updatable {
     private final Integer linkBuffer;
 
     private Node leftNode, rightNode;
+
+    private Integer numbLeftPktsThruBuffer;
+    private Integer numbRightPktsThruBuffer;
+
+    private Double sumLeftBufferTime;
+    private Double sumRightBufferTime;
+
+    private Double latestLeftBufferDelayEstimate;
+    private Double latestRightBufferDelayEstimate;
 
     /**
      * Packet drops for current interval
@@ -98,6 +107,16 @@ public class Link implements Updatable {
         this.packetDrops = new AtomicInteger(0);
         this.totalBitsTransmitted = new AtomicInteger(0);
         this.linkAnalyticsCollector = new LinkAnalyticsCollector(linkID, name);
+
+
+        numbLeftPktsThruBuffer = 0;
+        numbRightPktsThruBuffer = 0;
+        sumLeftBufferTime = 0.0;
+        sumRightBufferTime = 0.0;
+        timeSinceReBufferDelay = 0;
+
+        latestLeftBufferDelayEstimate = 0.0;
+        latestRightBufferDelayEstimate = 0.0;
     }
 
     /**
@@ -111,8 +130,43 @@ public class Link implements Updatable {
     public Integer getID() { return this.linkID; }
     public Node getLeftNode() { return this.leftNode; }
     public Node getRightNode() { return this.rightNode; }
+    public Integer getLinkDelay() { return this.linkDelay; }
     public void setLeftNode(Node node) { this.leftNode = node; }
     public void setRightNode(Node node) { this.rightNode = node; }
+
+
+    private Double getBufferDelay(Direction direction) {
+        if(direction == Direction.LEFT) {
+            return latestLeftBufferDelayEstimate;
+        }
+        else {
+            return latestRightBufferDelayEstimate;
+        }
+    }
+
+    private Double getBufferDelay(Node node) {
+        if(node == leftNode) {
+            return getBufferDelay(Direction.RIGHT);
+        } else if (node == rightNode) {
+            return getBufferDelay(Direction.LEFT);
+        } else
+            return 0.0;
+    }
+
+    public Double getDelay(Node node) {
+        return getLinkDelay() + getBufferDelay(node);
+    }
+
+
+    public Node getOtherEnd(Node oneEnd) {
+        if (oneEnd == leftNode) {
+            return rightNode;
+        } else if (oneEnd == rightNode) {
+            return leftNode;
+        } else {
+            return null;
+        }
+    }
 
     /**
      * Check if the packet can fit in the buffer otherwise drop it
@@ -164,6 +218,30 @@ public class Link implements Updatable {
      */
     public void update(Integer intervalTime, Integer overallTime) {
         System.out.println("updating");
+
+        if(timeSinceReBufferDelay < 0) {
+            timeSinceReBufferDelay = BUFFER_DELAY_PERIOD;
+
+            if(numbLeftPktsThruBuffer == 0)
+                latestLeftBufferDelayEstimate = 0.0;
+            else
+                latestLeftBufferDelayEstimate = sumLeftBufferTime / numbLeftPktsThruBuffer;
+
+            if(numbRightPktsThruBuffer == 0)
+                latestRightBufferDelayEstimate = 0.0;
+            else
+                latestRightBufferDelayEstimate = sumRightBufferTime / numbRightPktsThruBuffer;
+
+            numbLeftPktsThruBuffer = 0;
+            numbRightPktsThruBuffer = 0;
+            sumLeftBufferTime = 0.0;
+            sumRightBufferTime = 0.0;
+
+        } else {
+            timeSinceReBufferDelay -= intervalTime;
+        }
+
+
         // Reset packets drops and total bits transmitted for new interval
         packetDrops.set(0);
         totalBitsTransmitted.set(0);
@@ -185,6 +263,8 @@ public class Link implements Updatable {
                     }
                     else {
                         this.currentlyTransmittingPacket = rightPacketBuffer.remove();
+                        sumRightBufferTime += RunSim.getCurrentTime() - currentlyTransmittingPacket.transmissionStartTime;
+                        numbRightPktsThruBuffer++;
                         this.rightBufferRemainingCapacity += rightPacket.packet.getSize();
                     }
                 }
@@ -192,10 +272,14 @@ public class Link implements Updatable {
                     leftPacket.transmissionStartTime < rightPacket.transmissionStartTime)
                 {    
                     this.currentlyTransmittingPacket = leftPacketBuffer.remove();
+                    sumLeftBufferTime += RunSim.getCurrentTime() - currentlyTransmittingPacket.transmissionStartTime;
+                    numbLeftPktsThruBuffer++;
                     this.leftBufferRemainingCapacity += leftPacket.packet.getSize();
                 }
                 else {
                     this.currentlyTransmittingPacket = rightPacketBuffer.remove();
+                    sumRightBufferTime += RunSim.getCurrentTime() - currentlyTransmittingPacket.transmissionStartTime;
+                    numbRightPktsThruBuffer++;
                     this.rightBufferRemainingCapacity += rightPacket.packet.getSize();
                 }
 
@@ -221,10 +305,12 @@ public class Link implements Updatable {
                 // If we've transmitted the entire packet, transfer it to the
                 // host
                 if (this.bitsTransmitted.equals(this.currentlyTransmittingPacket.packet.getSize())) {
-                    if (this.currentlyTransmittingPacket.direction == Direction.RIGHT)
-                        this.rightNode.receivePacket(this.currentlyTransmittingPacket.packet);
-                    else
-                        this.leftNode.receivePacket(this.currentlyTransmittingPacket.packet);
+                    if (this.currentlyTransmittingPacket.direction == Direction.RIGHT) {
+                        this.rightNode.receivePacket(this.currentlyTransmittingPacket.packet, this);
+                    }
+                    else {
+                        this.leftNode.receivePacket(this.currentlyTransmittingPacket.packet, this);
+                    }
                     
                     // We're done transmitting this packet
                     this.totalBitsTransmitted.addAndGet(this.bitsTransmitted);
