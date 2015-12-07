@@ -19,3 +19,4 @@ hs_err_pid*
 # for the analytics produced
 *.png
 /graphs/
+*.txt

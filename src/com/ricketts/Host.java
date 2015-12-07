@@ -251,7 +251,7 @@ public class Host extends Node {
                         writer.println("retransmitted pcket" + packetID);
                         System.out.println("FAST RETRANSMIT");
                         DataPacket packet = flow.packets.peek();
-                        flow.sendTimes.put(packet.getID(), RunSim.getCurrentTime());
+                        flow.sendTimes.put(packet.getID(), Main.currentTime);
                         this.link.clearBuffer(this);
                         this.link.addPacket(packet, this);
                         // Since everything we sent won't go through, reset the window size to
@@ -378,7 +378,7 @@ public class Host extends Node {
                     // retransmit if so
                     for (Integer packetID : flow.sendTimes.keySet()) {
                         if (flow.sendTimes.get(packetID) + this.timeoutLength <
-                            RunSim.getCurrentTime())
+                            Main.currentTime)
                         {
                             /*
                             // If we retransmit, we re-enter slow start with ssthresh = half window size
@@ -393,7 +393,7 @@ public class Host extends Node {
                                 flow.windowSize = initWindowSize;
                             }*/
                             System.out.println("TCP RETRANSMIT");
-                            flow.sendTimes.put(packetID, RunSim.getCurrentTime());
+                            flow.sendTimes.put(packetID, Main.currentTime);
                             flow.windowOccupied = 1;
                             flow.mostRecentQueued = packetID;
                             link.clearBuffer(this);
@@ -424,7 +424,7 @@ public class Host extends Node {
                             writer.println("adding packet " + packet.getID());
                             this.link.addPacket(packet, this);
                             writer.println("Added packet " + packet.getID());
-                            flow.sendTimes.put(packet.getID(), RunSim.getCurrentTime());
+                            flow.sendTimes.put(packet.getID(), Main.currentTime);
                             flow.mostRecentQueued = packet.getID();
                             flow.currBitsSent.addAndGet(packet.getSize());
                             if (it.hasNext())
