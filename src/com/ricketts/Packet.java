@@ -12,10 +12,10 @@ package com.ricketts;
 public abstract class Packet {
     private final Integer id;
     private final Integer size;   // packet size in bits
-    private final Host source;
-    private final Host destination;
+    private final Node source;
+    private final Node destination;
 
-    public Packet(Integer id, Integer size, Host source, Host destination) {
+    public Packet(Integer id, Integer size, Node source, Node destination) {
         this.id = id;
         this.size = size;
         this.source = source;
@@ -28,6 +28,6 @@ public abstract class Packet {
 
     public Integer getID() { return id; }
     public Integer getSize() { return size; }
-    public Host getSource() { return source; }
-    public Host getDestination() { return destination; }
+    public Node getSource() { return source; }
+    public Node getDestination() { return destination; }
 }

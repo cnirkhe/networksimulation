@@ -5,5 +5,10 @@ package com.ricketts;
  */
 public interface Updatable
 {
+    /**
+     * Update by the simulation.
+     * @param intervalTime The time step of the simulation
+     * @param overallTime Overall simulation time
+     */
     void update(Integer intervalTime, Integer overallTime);
 }

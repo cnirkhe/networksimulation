@@ -1,13 +1,24 @@
 package com.ricketts;
 
-import java.lang.Math;
 import java.util.LinkedList;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * The Link is unlike a physical Link. Instead think of a Link as the physical link plus the buffers on either end.
  * A link is defined as LEFT to RIGHT (the naming is arbitrary) but packets are sent in 1 direction at a time.
  */
 public class Link implements Updatable {
+
+    /**
+     * This is the number of ms before the buffer delay is reestimated
+     */
+    private static final Integer ESTIMATE_BUFFER_DELAY_PERIOD = 200;
+
+    /**
+     * The time left in the period before reestimation
+     */
+    private Integer timeLeftInEstimationPeriod;
+
     /**
      * Orientations for Packets flowing on the link
      */
@@ -28,6 +39,31 @@ public class Link implements Updatable {
     private final Integer linkBuffer;
 
     private Node leftNode, rightNode;
+
+    /**
+     * Packet drops for current interval
+     */
+    private AtomicInteger packetDrops;
+    private LinkAnalyticsCollector linkAnalyticsCollector;
+
+    /**
+     * This is a count of the number of packets that passed through the buffer since the last time
+     * that the buffer delay was estimated. This number is used in said evaluation.
+     * In addition, it is refreshed after the estimation is finished.
+     */
+    private Integer numbLeftPacketsThroughBuffer, numbRightPacketsThroughBuffer;
+
+    /**
+     * This is a sum of the number of ms that packets have spent in the buffer before being sent along
+     * the link since the last time that the buffer delay was estimated. This number is used in said evaluation.
+     * In addition, it is refreshed after the estimation is finished.
+     */
+    private Integer sumLeftBufferTime, sumRightBufferTime;
+
+    /**
+     * The current best estimate at BufferDelay in ms.
+     */
+    private Double leftEstimatedBufferDelay, rightEstimatedBufferDelay;
 
     /**
      * Data class associating a direction and start time with a packet being
@@ -64,10 +100,22 @@ public class Link implements Updatable {
     private Integer bitsTransmitted;
 
     /**
+     * How many bits have been transmitted in the total period
+     */
+    private AtomicInteger totalBitsTransmitted;
+
+    /**
      * Complete Constructor
+     * @param linkID
+     * @param linkRate
+     * @param linkDelay
+     * @param linkBuffer
+     * @param leftNode
+     * @param rightNode
+     * @param name
      */
     public Link(Integer linkID, Integer linkRate, Integer linkDelay,
-        Integer linkBuffer, Node leftNode, Node rightNode) {
+        Integer linkBuffer, Node leftNode, Node rightNode, String name) {
         this.linkID = linkID;
         this.linkRate = linkRate;
         this.linkDelay = linkDelay;
@@ -79,21 +127,51 @@ public class Link implements Updatable {
         this.rightPacketBuffer = new LinkedList<>();
         this.leftBufferRemainingCapacity = linkBuffer;
         this.rightBufferRemainingCapacity = linkBuffer;
+        this.packetDrops = new AtomicInteger(0);
+        this.totalBitsTransmitted = new AtomicInteger(0);
+        this.linkAnalyticsCollector = new LinkAnalyticsCollector(linkID, name);
+
+        //Initializations for estimating Buffer Delay
+        numbLeftPacketsThroughBuffer = 0;
+        numbRightPacketsThroughBuffer = 0;
+        sumLeftBufferTime = 0;
+        sumRightBufferTime = 0;
+        timeLeftInEstimationPeriod = ESTIMATE_BUFFER_DELAY_PERIOD;
+
+        leftEstimatedBufferDelay = 0.0;
+        rightEstimatedBufferDelay = 0.0;
     }
 
     /**
      * Constructor without nodes defined
+     * @param linkID
+     * @param linkRate
+     * @param linkDelay
+     * @param linkBuffer
+     * @param name
      */
     public Link(Integer linkID, Integer linkRate, Integer linkDelay,
-            Integer linkBuffer) {
-        this(linkID,linkRate, linkDelay, linkBuffer, null, null);
+            Integer linkBuffer, String name) {
+        this(linkID,linkRate, linkDelay, linkBuffer, null, null, name);
     }
 
     public Integer getID() { return this.linkID; }
     public Node getLeftNode() { return this.leftNode; }
     public Node getRightNode() { return this.rightNode; }
+    public Integer getLinkDelay() { return this.linkDelay; }
     public void setLeftNode(Node node) { this.leftNode = node; }
     public void setRightNode(Node node) { this.rightNode = node; }
+
+
+    public Node getOtherEnd(Node oneEnd) {
+        if (oneEnd == leftNode) {
+            return rightNode;
+        } else if (oneEnd == rightNode) {
+            return leftNode;
+        } else {
+            return null;
+        }
+    }
 
     /**
      * Check if the packet can fit in the buffer otherwise drop it
@@ -111,7 +189,7 @@ public class Link implements Updatable {
             if (newRemainingCapacity >= 0) {
                 // If so, add it and update the remaining capacity
                 leftPacketBuffer.add(new TransmittingPacket(packet, Direction.RIGHT,
-                    RunSim.getCurrentTime()));
+                        RunSim.getCurrentTime()));
                 leftBufferRemainingCapacity = newRemainingCapacity;
                 return true;
             }
@@ -130,6 +208,8 @@ public class Link implements Updatable {
         else
             System.out.println("addPacket() from unconnected node");
 
+        // We dropped this packet
+        packetDrops.incrementAndGet();
         return false;
     }
 
@@ -142,6 +222,10 @@ public class Link implements Updatable {
      * @param overallTime Overall simulation time
      */
     public void update(Integer intervalTime, Integer overallTime) {
+        System.out.println("updating");
+        // Reset packets drops and total bits transmitted for new interval
+        packetDrops.set(0);
+        totalBitsTransmitted.set(0);
         // While there's time left in the interval,,,
         Integer usageLeft = intervalTime * this.linkRate, packetBits, endOfDelay;
 
@@ -154,8 +238,10 @@ public class Link implements Updatable {
                 TransmittingPacket leftPacket = this.leftPacketBuffer.peek();
                 TransmittingPacket rightPacket = this.rightPacketBuffer.peek();
                 if (leftPacket == null) {
-                    if (rightPacket == null)
+                    if (rightPacket == null) {
+                        System.out.println("null shit");
                         return;
+                    }
                     else {
                         this.currentlyTransmittingPacket = rightPacketBuffer.remove();
                         this.rightBufferRemainingCapacity += rightPacket.packet.getSize();
@@ -194,12 +280,22 @@ public class Link implements Updatable {
                 // If we've transmitted the entire packet, transfer it to the
                 // host
                 if (this.bitsTransmitted.equals(this.currentlyTransmittingPacket.packet.getSize())) {
-                    if (this.currentlyTransmittingPacket.direction == Direction.RIGHT)
-                        this.rightNode.receivePacket(this.currentlyTransmittingPacket.packet);
-                    else
-                        this.leftNode.receivePacket(this.currentlyTransmittingPacket.packet);
+
+                    //Calculation of time spent in buffer
+                    Integer timeSpent = RunSim.getCurrentTime() - currentlyTransmittingPacket.transmissionStartTime;
+
+                    if (this.currentlyTransmittingPacket.direction == Direction.RIGHT) {
+                        this.rightNode.receivePacket(this.currentlyTransmittingPacket.packet, this);
+                        numbRightPacketsThroughBuffer++;
+                        sumRightBufferTime += timeSpent;
+                    } else {
+                        this.leftNode.receivePacket(this.currentlyTransmittingPacket.packet, this);
+                        numbLeftPacketsThroughBuffer++;
+                        sumLeftBufferTime += timeSpent;
+                    }
                     
                     // We're done transmitting this packet
+                    this.totalBitsTransmitted.addAndGet(this.bitsTransmitted);
                     this.currentlyTransmittingPacket = null;
                     this.bitsTransmitted = 0;
 
@@ -209,6 +305,61 @@ public class Link implements Updatable {
                     usageLeft -= packetBits;
                 }
             }
+        }
+        System.out.println("done updooting");
+        // Want rates per second
+        linkAnalyticsCollector.addToLeftBuffer((linkBuffer - leftBufferRemainingCapacity) / ((double) intervalTime / 1000), intervalTime);
+        System.out.println((linkBuffer - leftBufferRemainingCapacity));
+        linkAnalyticsCollector.addToRightBuffer((linkBuffer - rightBufferRemainingCapacity) / ((double) intervalTime / 1000), intervalTime);
+        linkAnalyticsCollector.addToPacketLoss(packetDrops.get(), intervalTime);
+        // Want link rates in Mbps
+        linkAnalyticsCollector.addToLinkRates(totalBitsTransmitted.get() * 100000 / ((double) intervalTime / 1000), intervalTime);
+
+        //estimation of sent packets
+        if (timeLeftInEstimationPeriod <= 0 ) {
+            leftEstimatedBufferDelay = ((double) sumRightBufferTime) / numbLeftPacketsThroughBuffer;
+            rightEstimatedBufferDelay = ((double) sumLeftBufferTime) / numbRightPacketsThroughBuffer;
+
+            numbLeftPacketsThroughBuffer = 0;
+            numbRightPacketsThroughBuffer = 0;
+            sumLeftBufferTime = 0;
+            sumRightBufferTime = 0;
+            timeLeftInEstimationPeriod = ESTIMATE_BUFFER_DELAY_PERIOD;
+        } else {
+            timeLeftInEstimationPeriod -= intervalTime;
+        }
+    }
+
+    public void generateLinkGraphs() {
+        linkAnalyticsCollector.generateLinkGraphs();
+    }
+
+    /**
+     * Calculate the estimated buffer delay in ms for given direciton
+     * @param direction
+     * @return in ms
+     */
+    public Double getEstimatedBufferDelay(Direction direction) {
+        if(direction == Direction.LEFT) {
+            return leftEstimatedBufferDelay;
+        } else {
+            return rightEstimatedBufferDelay;
+        }
+    }
+
+    /**
+     * Calculate the estimated buffer delay in ms eminating from the Node
+     * If the node is not part of the link, return -1.0;
+     * @param node
+     * @return
+     */
+    public Double getEstimatedBufferDelay(Node node) {
+        if (node == leftNode) {
+            return getEstimatedBufferDelay(Direction.RIGHT);
+        } else if (node == rightNode) {
+            return getEstimatedBufferDelay(Direction.LEFT);
+        } else {
+            return -1.0;
         }
     }
 }
