@@ -8,7 +8,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String filename = new String("h1.json");
+        String filename = new String("h0.json");
         String f2 = filename.substring(0, filename.length() - 5);
         InputParser ip = new InputParser();
         ip.parseJSON(filename);
@@ -52,10 +52,6 @@ public class Main {
             Integer initialTime = RunSim.getCurrentTime();
             Integer currentTime = RunSim.getCurrentTime(), nextTime;
             while (currentTime < initialTime + 30000) {
-
-                if(currentTime > initialTime + 5000) {
-                    System.out.println("pause");
-                }
 
                 System.out.println("loop");
                 nextTime = RunSim.getCurrentTime();

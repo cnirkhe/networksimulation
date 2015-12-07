@@ -31,21 +31,21 @@ public class FlowAnalyticsCollector {
      *  Add a rate to flow rates.
      */
     public void addToFlowRates(double rate, int time) {
-        flowRates.addValue((Number) rate, "Flow " + flowId, time);
+        flowRates.addValue(rate, "Flow " + flowId, "" + time);
     }
 
     /**
      * Add a window size to window sizes.
      */
     public void addToWindowSize(int size, int time) {
-        windowSizes.addValue((Number) size, "Flow " + flowId, time);
+        windowSizes.addValue(size, "Flow " + flowId, "" + time);
     }
 
     /**
      * Add a packet delay to packet delays.
      */
     public void addToPacketDelay(double delay, int time) {
-        packetDelays.addValue((Number) delay, "Flow " + flowId, time);
+        packetDelays.addValue(delay, "Flow " + flowId, "" + time);
     }
 
     public void generateFlowGraphs() {

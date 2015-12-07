@@ -28,31 +28,22 @@ public class LinkAnalyticsCollector {
     }
 
     public void addToLeftBuffer(double size, int time) {
-        leftBufferOccupancy.addValue((Number) size, "Link " + linkId, time);
+        leftBufferOccupancy.addValue(size, "Link " + linkId, "" + time);
     }
 
     public void addToRightBuffer(double size, int time) {
-        rightBufferOccupancy.addValue((Number) size, "Link " + linkId, time);
+        rightBufferOccupancy.addValue(size, "Link " + linkId, "" + time);
     }
 
     public void addToPacketLoss(int packets, int time) {
-        packetLoss.addValue((Number) packets, "Link " + linkId, time);
+        packetLoss.addValue(packets, "Link " + linkId, "" + time);
     }
 
     public void addToLinkRates(double rate, int time) {
-        packetLoss.addValue((Number) rate, "Link " + linkId, time);
+        linkRates.addValue(rate, "Link " + linkId, "" + time);
     }
 
     public void generateLinkGraphs() {
-        for (int r = 0; r < linkRates.getRowCount(); r++) {
-            String series = (String) linkRates.getRowKey(r);
-            for (int c = 0; c < linkRates.getColumnCount(); c++) {
-                System.out.println(series
-                        + ", " + linkRates.getColumnKey(c)
-                        + ", " + linkRates.getValue(r, c));
-            }
-        }
-        System.out.println(leftBufferOccupancy);
         LineChart_AWT leftBuff = new LineChart_AWT("Left Buffer", "Left Buffer Occupancy", "Buffer occupancy (pkts)",
                 leftBufferOccupancy, "Link " + linkId + " Left Buffer Occupancy " + name + ".png", 888, 888);
         LineChart_AWT rightBuff = new LineChart_AWT("Right Buffer", "Right Buffer Occupancy", "Buffer occupancy (pkts)",
