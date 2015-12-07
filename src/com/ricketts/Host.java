@@ -214,9 +214,11 @@ public class Host extends Node {
                         // If we're in CA phase for Reno, cwnd <- cwnd + 1/cwnd. In out
                         // implementation we add to partialWindowSize.
                         else {
+                            writer.println("Partial window size is " + flow.partialWindowSize);
+                            writer.println("Window size is " + flow.windowSize);
                             flow.partialWindowSize++;
                             // If we've received enough acks to increment the window size, do so.
-                            if (flow.partialWindowSize == flow.windowSize) {
+                            if (flow.partialWindowSize >= flow.windowSize) {
                                 writer.println("does this ever happen :( :( :(");
                                 flow.windowSize++;
                                 flow.partialWindowSize = 0;
