@@ -63,7 +63,7 @@ public class InputParser {
      * @param linkMap HashMap of Link Ids to Links
      * @return ArrayList of Hosts
      */
-    public ArrayList<Host> extractHosts(HashMap<Integer, Link> linkMap) {
+    public ArrayList<Host> extractHosts(HashMap<Integer, Link> linkMap, int protocol) {
         ArrayList<Host> output = new ArrayList<>();
 
         try {
@@ -76,7 +76,7 @@ public class InputParser {
                 int linkId = hostJson.getInt("link");
                 //Get Link using map
                 Link link = linkMap.get(linkId);
-                Host host = new Host(address, link);
+                Host host = new Host(address, link, protocol);
                 output.add(host);
             }
         } catch (JSONException e) {
@@ -124,7 +124,7 @@ public class InputParser {
      * Using the JSON definition, produce ArrayList of Links
      * @return ArrayList of Links
      */
-    public ArrayList<Link> extractLinks(String filename) {
+    public ArrayList<Link> extractLinks(String filename, int protocol) {
         ArrayList<Link> output = new ArrayList<>();
         try {
             JSONArray linkArray = jsonObject.getJSONObject("network").getJSONArray("links");
@@ -135,7 +135,7 @@ public class InputParser {
                 int transmissionDelay = linkJson.getInt("transmissionDelay");
                 int buffer = linkJson.getInt("bufferSize");
                 // add in left node and right node
-                output.add(new Link(id, capacity, transmissionDelay, buffer, filename));
+                output.add(new Link(id, capacity, transmissionDelay, buffer, filename, protocol));
             }
         } catch (JSONException e) {
             System.out.println(e);
@@ -146,7 +146,7 @@ public class InputParser {
     /* Given an address book and a list of packets, construct all the flows in
      * the network.
      */
-    public ArrayList<Flow> extractFlows(HashMap<String, Node> addressBook, String filename) {
+    public ArrayList<Flow> extractFlows(HashMap<String, Node> addressBook, String filename, int protocol) {
         ArrayList<Flow> output = new ArrayList<>();
         try {
             JSONArray flowArray = jsonObject.getJSONObject("network").getJSONArray("flows");
@@ -159,7 +159,7 @@ public class InputParser {
                 Host destination = (Host) addressBook.get(destinationId);
                 int dataAmount = flowJson.getInt("dataAmount");
                 int startTime = flowJson.getInt("startTime");
-                output.add(new Flow(id, source, destination, dataAmount, startTime, filename));
+                output.add(new Flow(id, source, destination, dataAmount, startTime, filename, protocol));
             }
         } catch (JSONException e) {
             System.out.println(e);

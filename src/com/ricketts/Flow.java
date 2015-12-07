@@ -19,19 +19,22 @@ public class Flow {
      */
     private Integer dataSize;
 
+    private int protocol;
+
     /**
      * Measured in milliseconds. Denotes when relative to the global time this flow should initiate.
      */
     private Integer startTime;
 
     public Flow(Integer id, Host source, Host destination, Integer dataSize, Integer startTime,
-                String name) {
+                String name, int protocol) {
         this.id = id;
         this.source = source;
         this.destination = destination;
         this.dataSize = dataSize;
         this.startTime = startTime;
         this.flowAnalyticsCollector = new FlowAnalyticsCollector(this.id, name);
+        this.protocol = protocol;
     }
 
     public Host getSource() { return this.source; }

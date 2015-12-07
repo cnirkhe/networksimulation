@@ -89,10 +89,15 @@ public class Link implements Updatable {
     private AtomicInteger totalBitsTransmitted;
 
     /**
+     * Which protocol we're using right now
+     */
+    private int protocol;
+
+    /**
      * Complete Constructor
      */
     public Link(Integer linkID, Integer linkRate, Integer linkDelay,
-        Integer linkBuffer, Node leftNode, Node rightNode, String name) {
+        Integer linkBuffer, Node leftNode, Node rightNode, String name, int protocol) {
         this.linkID = linkID;
         this.linkRate = linkRate;
         this.linkDelay = linkDelay;
@@ -107,6 +112,7 @@ public class Link implements Updatable {
         this.packetDrops = new AtomicInteger(0);
         this.totalBitsTransmitted = new AtomicInteger(0);
         this.linkAnalyticsCollector = new LinkAnalyticsCollector(linkID, name);
+        this.protocol = protocol;
 
 
         numbLeftPktsThruBuffer = 0;
@@ -123,8 +129,8 @@ public class Link implements Updatable {
      * Constructor without nodes defined
      */
     public Link(Integer linkID, Integer linkRate, Integer linkDelay,
-            Integer linkBuffer, String name) {
-        this(linkID,linkRate, linkDelay, linkBuffer, null, null, name);
+            Integer linkBuffer, String name, int protocol) {
+        this(linkID,linkRate, linkDelay, linkBuffer, null, null, name, protocol);
     }
 
     public Integer getID() { return this.linkID; }
