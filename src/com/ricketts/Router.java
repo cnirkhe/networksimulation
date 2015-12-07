@@ -2,10 +2,7 @@ package com.ricketts;
 
 import com.sun.tools.javac.util.Pair;
 
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.LinkedList;
+import java.util.*;
 
 /**
  * A Router is a type of Node who's job is to process incoming packets and forward them to the best neighbor.
@@ -17,10 +14,17 @@ public class Router extends Node
      */
     private static final Integer TABLE_BROADCAST_PERIOD = 100;
 
+    private static final Integer TABLE_UPDATE_PERIOD = 300;
+
+    /**
+     * The time left in the period before table update
+     */
+    private Integer timeLeftInUpdatePeriod;
+
     /**
      * The time left in the period before rebroadcast
      */
-    private Integer timeLeftInPeriod;
+    private Integer timeLeftInBroadcastPeriod;
 
     /**
      * The set of Links that this router is connected to
@@ -33,7 +37,12 @@ public class Router extends Node
     /**
      * Maps a Host to the respective distance, link to send along
      */
-    private HashMap<Node, Pair<Integer, Link>> routingTable;
+    private HashMap<Node, Pair<Double, Link>> currentRoutingTable;
+
+    /**
+     * The next routing table. It is developed using routingtable packets
+     */
+    private HashMap<Node, Pair<Double, Link>> nextRoutingTable;
 
     public Router(String address, ArrayList<Link> links) {
         super(address);
@@ -45,39 +54,46 @@ public class Router extends Node
             packetsToSend.put(l, new LinkedList<Packet>());
         }
 
-        routingTable = new HashMap<>();
-        timeLeftInPeriod = 0;
+        timeLeftInBroadcastPeriod = 0;
+        timeLeftInUpdatePeriod = 0;
     }
 
     public ArrayList<Link> getLinks() {
         return links;
     }
 
-    public void setRoutingTable(HashMap<Node, Pair<Integer, Link>> routingTable) {
-        this.routingTable = routingTable;
+    public void initializeRoutingTable() {
+        currentRoutingTable = new HashMap<>();
+
+        //Add neighbors
+        for(Link link : links) {
+            Node neighbor = link.getOtherEnd(this);
+            Pair<Double, Link> neighborInformation = Pair.of(link.getDelay(), link);
+            currentRoutingTable.put(neighbor, neighborInformation);
+        }
+
+        //Itself
+        Pair<Double, Link> selfInformation = Pair.of(0.0, (Link) null);
+        currentRoutingTable.put(this, selfInformation);
+
+        nextRoutingTable = new HashMap<>();
+        nextRoutingTable.put(this, selfInformation);
     }
 
     /**
-     * This method updates this routers routing table given the following information by the Bellman-Ford algorithm
+     * This method updates this routers next routing table given the following information by the Bellman-Ford algorithm
      * @param connectingLink index of their connecting link
      * @param neighborRoutingTable and the routing table of the neighbor
      */
-    private void updateRoutingTable(Link connectingLink,
-                                    HashMap<Node,Pair<Integer,Link>> neighborRoutingTable) {
-        //Calculate who sent it
-        Node neighbor = connectingLink.getOtherEnd(this);
+    private void updateRoutingTable(Link connectingLink, HashMap<Node,Pair<Double,Link>> neighborRoutingTable) {
+        for(Node node : neighborRoutingTable.keySet()) {
+            Pair<Double, Link> neighborsKnowledge = neighborRoutingTable.get(node);
 
-        Pair<Integer,Link> neighborInformation = Pair.of(connectingLink.getLinkDelay(), connectingLink);
-        routingTable.put(neighbor, neighborInformation); //If data exists, overwrites but equivalent time as check and rewrite
-
-        // Now we update our routing table using the triangle inequality and all of the information in the neighbor's routing table
-        for( Node router : neighborRoutingTable.keySet()) {
-            Pair<Integer, Link> routerInformation = neighborRoutingTable.get(router);
-            Pair<Integer, Link> myCurrentInformation = routingTable.getOrDefault(router, Pair.of(Integer.MAX_VALUE, (Link) null));
-            if(routerInformation.fst + neighborInformation.fst < myCurrentInformation.fst) {
-                //Change the routing to go through neighbor router
-                myCurrentInformation = Pair.of(routerInformation.fst + neighborInformation.fst, connectingLink);
-                routingTable.put(router, myCurrentInformation);
+            Pair<Double, Link> myKnowledge = nextRoutingTable.get(node);
+            Double distanceThroughNeighbor = connectingLink.getDelay() + neighborsKnowledge.fst;
+            if(myKnowledge == null || distanceThroughNeighbor < myKnowledge.fst) {
+                Pair<Double, Link> tableEntry = Pair.of(distanceThroughNeighbor, connectingLink);
+                nextRoutingTable.put(node, tableEntry);
             }
         }
     }
@@ -95,8 +111,8 @@ public class Router extends Node
         } else {
             Node destination = packet.getDestination();
 
-            //Check the routingtable for which link to send out these packets on
-            Pair<Integer, Link> bestPath = routingTable.get(destination);
+            //Check the routing table for which link to send out these packets on
+            Pair<Double, Link> bestPath = currentRoutingTable.get(destination);
             if (bestPath == null) {
                 System.out.println("Destination unknown in routing table.");
             } else {
@@ -114,21 +130,44 @@ public class Router extends Node
     /**
      * Forwards all the packets queued up along the router along their way.
      * Pays no attention to any constraints.
-     * Periodically send the routing table along all links.
+     * Periodically send the routing table along all links. Also periodically update to the next routing table.
      * @param intervalTime The time step of the simulation
      * @param overallTime Overall simulation time
      */
     public void update(Integer intervalTime, Integer overallTime) {
 
-        if(timeLeftInPeriod < 0) {
-            timeLeftInPeriod = TABLE_BROADCAST_PERIOD;
+        if(timeLeftInBroadcastPeriod <= 0) {
+            timeLeftInBroadcastPeriod = TABLE_BROADCAST_PERIOD;
             for(Link link : links) {
                 Node otherEnd = link.getOtherEnd(this);
-                RoutingTablePacket routingTablePacket = new RoutingTablePacket(this, otherEnd, routingTable);
+                RoutingTablePacket routingTablePacket = new RoutingTablePacket(this, otherEnd, currentRoutingTable);
                 packetsToSend.get(link).addFirst(routingTablePacket);
             }
         } else {
-            timeLeftInPeriod -= intervalTime;
+            timeLeftInBroadcastPeriod -= intervalTime;
+        }
+
+        if(timeLeftInUpdatePeriod < 0) {
+            timeLeftInUpdatePeriod = TABLE_UPDATE_PERIOD;
+
+            //First we ensure that we have entries in every part of the newtable
+            //If not, we get them from the old table
+            Set<Node> currentNodesKnown = currentRoutingTable.keySet();
+            for(Node node : currentNodesKnown) {
+                if(!nextRoutingTable.containsKey(node)) {
+                    Pair<Double, Link> entry = currentRoutingTable.get(node);
+                    nextRoutingTable.put(node, entry);
+                }
+            }
+
+            currentRoutingTable = nextRoutingTable;
+
+            nextRoutingTable = new HashMap<>();
+            Pair<Double, Link> selfInformation = Pair.of(0.0, (Link) null);
+            nextRoutingTable.put(this, selfInformation);
+
+        } else {
+            timeLeftInUpdatePeriod -= intervalTime;
         }
 
 

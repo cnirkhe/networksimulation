@@ -1,10 +1,5 @@
 package com.ricketts;
 
-import org.jfree.data.category.DefaultCategoryDataset;
-
-import java.lang.Math;
-import java.lang.reflect.Array;
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -128,6 +123,11 @@ public class Link implements Updatable {
     public void setRightNode(Node node) { this.rightNode = node; }
 
 
+    public Double getDelay() {
+        return getLinkDelay().doubleValue();
+    }
+
+
     public Node getOtherEnd(Node oneEnd) {
         if (oneEnd == leftNode) {
             return rightNode;
@@ -245,10 +245,12 @@ public class Link implements Updatable {
                 // If we've transmitted the entire packet, transfer it to the
                 // host
                 if (this.bitsTransmitted.equals(this.currentlyTransmittingPacket.packet.getSize())) {
-                    if (this.currentlyTransmittingPacket.direction == Direction.RIGHT)
+                    if (this.currentlyTransmittingPacket.direction == Direction.RIGHT) {
                         this.rightNode.receivePacket(this.currentlyTransmittingPacket.packet, this);
-                    else
+                    }
+                    else {
                         this.leftNode.receivePacket(this.currentlyTransmittingPacket.packet, this);
+                    }
                     
                     // We're done transmitting this packet
                     this.totalBitsTransmitted.addAndGet(this.bitsTransmitted);

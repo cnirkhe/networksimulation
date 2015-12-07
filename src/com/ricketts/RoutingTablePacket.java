@@ -10,9 +10,9 @@ import java.util.HashMap;
  */
 public class RoutingTablePacket extends Packet {
 
-    private HashMap<Node, Pair<Integer, Link>> routingTable;
+    private HashMap<Node, Pair<Double, Link>> routingTable;
 
-    public RoutingTablePacket(Node source, Node destination, HashMap<Node, Pair<Integer, Link>> routingTable) {
+    public RoutingTablePacket(Node source, Node destination, HashMap<Node, Pair<Double, Link>> routingTable) {
         super(0, calculateTableSize(routingTable) ,source, destination);
         this.routingTable = routingTable;
     }
@@ -27,12 +27,12 @@ public class RoutingTablePacket extends Packet {
      * @param routingTable the routing table being used
      * @return int of the size of routing table in bytes
      */
-    private static int calculateTableSize(HashMap<Node, Pair<Integer, Link>> routingTable) {
+    private static int calculateTableSize(HashMap<Node, Pair<Double, Link>> routingTable) {
         int initialCapacity = (routingTable.size() > 16 ? routingTable.size() : 16);
         return 36 * routingTable.size() + 4 * initialCapacity;
     }
 
-    public HashMap<Node, Pair<Integer, Link>> getRoutingTable() {
+    public HashMap<Node, Pair<Double, Link>> getRoutingTable() {
         return this.routingTable;
     }
 }
