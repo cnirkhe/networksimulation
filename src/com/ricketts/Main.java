@@ -57,7 +57,7 @@ public class Main {
         if (DEBUG) {
             Integer initialTime = RunSim.getCurrentTime();
             Integer currentTime = RunSim.getCurrentTime(), nextTime;
-            while (currentTime < initialTime + 90000) {
+            while (currentTime < initialTime + 200000) {
 
                 System.out.println("loop");
                 nextTime = RunSim.getCurrentTime();
