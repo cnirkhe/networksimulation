@@ -68,7 +68,7 @@ public class Router extends Node
         //Add neighbors
         for(Link link : links) {
             Node neighbor = link.getOtherEnd(this);
-            Pair<Double, Link> neighborInformation = Pair.of(link.getDelay(), link);
+            Pair<Double, Link> neighborInformation = Pair.of(link.getDelay(this), link);
             nextRoutingTable.put(neighbor, neighborInformation);
         }
 
@@ -96,7 +96,7 @@ public class Router extends Node
             Pair<Double, Link> neighborsKnowledge = neighborRoutingTable.get(node);
 
             Pair<Double, Link> myKnowledge = nextRoutingTable.get(node);
-            Double distanceThroughNeighbor = connectingLink.getDelay() + neighborsKnowledge.fst;
+            Double distanceThroughNeighbor = connectingLink.getDelay(this) + neighborsKnowledge.fst;
             if(myKnowledge == null || distanceThroughNeighbor < myKnowledge.fst) {
                 Pair<Double, Link> tableEntry = Pair.of(distanceThroughNeighbor, connectingLink);
                 nextRoutingTable.put(node, tableEntry);

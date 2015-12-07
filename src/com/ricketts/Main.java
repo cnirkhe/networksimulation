@@ -53,16 +53,16 @@ public class Main {
             Integer currentTime = RunSim.getCurrentTime(), nextTime;
             while (currentTime < initialTime + 30000) {
 
-                if(currentTime > initialTime + 10000) {
+                if(currentTime > initialTime + 5000) {
                     System.out.println("pause");
                 }
 
                 System.out.println("loop");
                 nextTime = RunSim.getCurrentTime();
                 for(Updatable u : updatableLinkedList) {
-                    u.update(40, currentTime);
+                    u.update(5, currentTime);
                 }
-                while (RunSim.getCurrentTime() < nextTime + 40) {
+                while (RunSim.getCurrentTime() < nextTime + 5) {
                     // busy wait
                     // TODO: this is bad and we should change
                 }
