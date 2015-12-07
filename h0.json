@@ -8,6 +8,6 @@
         {"id": 1, "capacity": 10000000, "transmissionDelay": 10, "bufferSize": 64000}
         ],
     "flows" : [
-        {"id": 4, "source": "h1", "destination": "h2", "dataAmount": 20000000, "startTime": 1000}
+        {"id": 1, "source": "h1", "destination": "h2", "dataAmount": 20000000, "startTime": 1000}
         ]
 }}

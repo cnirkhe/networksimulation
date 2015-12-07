@@ -4,7 +4,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 public class Main {
-    public static boolean DEBUG = true;
+
+    public static Integer currentTime = 0;
 
     public static class Protocol {
         public static int RENO = 1;
@@ -53,35 +54,25 @@ public class Main {
         updatableLinkedList.addAll(nodes);
         updatableLinkedList.addAll(links);
 
+        Integer intervalStep = 10;
 
-        if (DEBUG) {
-            Integer initialTime = RunSim.getCurrentTime();
-            Integer currentTime = RunSim.getCurrentTime(), nextTime;
-            while (currentTime < initialTime + 90000) {
+        while (currentTime < 150000) {
 
-                System.out.println("loop");
-                nextTime = RunSim.getCurrentTime();
-                for(Updatable u : updatableLinkedList) {
-                    u.update(1, currentTime);
-                }
-                while (RunSim.getCurrentTime() < nextTime + 5) {
-                    // busy wait
-                    // TODO: this is bad and we should change
-                }
-                currentTime = nextTime;
+            System.out.println("looping at time " + currentTime);
+            for(Updatable u : updatableLinkedList) {
+                u.update(1, currentTime);
             }
-            // Get flow and link stats
-            for (Flow flowerino : flows) {
-                flowerino.generateFlowGraphs();
-            }
-            for (Link linkerino : links) {
-                linkerino.generateLinkGraphs();
-            }
-            System.out.println("generated graphs");
+            currentTime += intervalStep;
         }
-        else {
-            RunSim.run(updatableLinkedList, 2, 30000, links, flows);
+
+
+        // Get flow and link stats
+        for (Flow flowerino : flows) {
+            flowerino.generateFlowGraphs();
         }
-        System.out.println("hi");
+        for (Link linkerino : links) {
+            linkerino.generateLinkGraphs();
+        }
+        System.out.println("generated graphs");
     }
 }
