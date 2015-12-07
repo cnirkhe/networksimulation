@@ -2,11 +2,7 @@ package com.ricketts;
 
 import com.sun.tools.javac.util.Pair;
 
-import java.util.ArrayList;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.Set;
+import java.util.*;
 
 
 /**
@@ -17,6 +13,11 @@ public class Router extends Node {
      * The period at which the Routing Table is broadcast to all of its neighbors
      */
     private static final Integer TABLE_BROADCAST_PERIOD = 100;
+
+    /**
+     * The minimum number of identical routing tables before the router has declared convergence
+     */
+    private static final Integer MINIMUM_IDENTICAL_TABLES = 4;
 
     /**
      * The time left in the period before rebroadcast
@@ -39,6 +40,17 @@ public class Router extends Node {
      * Over the TABLE_BROADCAST_PERIOD a new routing table is built (dynamically)
      */
     private HashMap<Node, Pair<Double, Link>> developingRoutingTable;
+
+    /**
+     * The collection of old RoutingTables from previous constructions
+     * This is used to check convergence of routing tables
+     */
+    private LinkedList<HashMap<Node, Pair<Double, Link>>> oldRoutingTables;
+
+    /**
+     * Boolean to indicate if the routing tables have converged to a single value.
+     */
+    private Boolean convergedRoutingTable;
 
     public Router(String address, ArrayList<Link> links) {
         super(address);
@@ -75,6 +87,9 @@ public class Router extends Node {
         currentRoutingTable.put(this, selfInformation);
 
         developingRoutingTable = new HashMap<>();
+
+        oldRoutingTables = new LinkedList<>();
+        convergedRoutingTable = false;
     }
 
     /**
@@ -145,9 +160,42 @@ public class Router extends Node {
             }
         }
 
-        currentRoutingTable = developingRoutingTable;
-        developingRoutingTable = new HashMap<>();
+        //Add the current routing table to the set of old routing tables
+        //Then verify that we don't have MINIMUM_IDENTICAL_TABLES identical routing tables
+        //If we do, then the routing tables have converges
 
+        if(oldRoutingTables.size() == MINIMUM_IDENTICAL_TABLES ) {
+            oldRoutingTables.remove(0); //Remove the first one
+        }
+
+        //Test if they are identical on all destination (in the sense the link that they send it on)
+        boolean identical = true;
+
+        Iterator<Node> destinationIterator = destinationKeySet.iterator();
+        while(identical && destinationIterator.hasNext()) {
+            Node destination = destinationIterator.next();
+            Link linkUsed = currentRoutingTable.get(destination).snd;
+
+            Iterator<HashMap<Node, Pair<Double, Link>>> routingTableIterator = oldRoutingTables.iterator();
+            HashMap<Node, Pair<Double,Link>> oldRoutingTable;
+            while(identical && routingTableIterator.hasNext()) {
+                oldRoutingTable = routingTableIterator.next();
+                Link oldLink = oldRoutingTable.get(destination).snd;
+                if(oldLink != linkUsed) {
+                    identical = false;
+                }
+            }
+        }
+
+        //If identical, then routing tables have converged
+        if(identical) {
+            convergedRoutingTable = true;
+        }
+        else {
+            oldRoutingTables.add(currentRoutingTable);
+            currentRoutingTable = developingRoutingTable;
+            developingRoutingTable = new HashMap<>();
+        }
     }
 
     /**
@@ -170,8 +218,9 @@ public class Router extends Node {
                 packetsToSend.get(link).addFirst(routingTablePacket);
             }
 
-            //Update own
-            updateRoutingTable();
+            //Update own routing table if we have not converged yet
+            if(!convergedRoutingTable)
+                updateRoutingTable();
 
         } else {
             timeLeftInPeriod -= intervalTime;
