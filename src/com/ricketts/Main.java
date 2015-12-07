@@ -57,14 +57,14 @@ public class Main {
         if (DEBUG) {
             Integer initialTime = RunSim.getCurrentTime();
             Integer currentTime = RunSim.getCurrentTime(), nextTime;
-            while (currentTime < initialTime + 150000) {
+            while (currentTime < initialTime + 90000) {
 
                 System.out.println("loop");
                 nextTime = RunSim.getCurrentTime();
                 for(Updatable u : updatableLinkedList) {
                     u.update(1, currentTime);
                 }
-                while (RunSim.getCurrentTime() < nextTime + 1) {
+                while (RunSim.getCurrentTime() < nextTime + 5) {
                     // busy wait
                     // TODO: this is bad and we should change
                 }

@@ -1,5 +1,6 @@
 package com.ricketts;
 
+import java.io.PrintWriter;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -93,6 +94,8 @@ public class Link implements Updatable {
      */
     private int protocol;
 
+    private PrintWriter writer_left;
+    private PrintWriter writer_right;
     /**
      * Complete Constructor
      */
@@ -113,7 +116,12 @@ public class Link implements Updatable {
         this.totalBitsTransmitted = new AtomicInteger(0);
         this.linkAnalyticsCollector = new LinkAnalyticsCollector(linkID, name);
         this.protocol = protocol;
-
+        try {
+            this.writer_left = new PrintWriter("logger_link_left.txt", "UTF-8");
+            this.writer_right = new PrintWriter("logger_link_right.txt", "UTF-8");
+        } catch(Exception e) {
+            System.out.println(e);
+        }
 
         numbLeftPktsThruBuffer = 0;
         numbRightPktsThruBuffer = 0;
@@ -185,6 +193,7 @@ public class Link implements Updatable {
         Integer newRemainingCapacity;
         // If packet is coming from the left
         if (sendingNode == leftNode) {
+            writer_left.println("adding packet" + packet.getID());
             // Check if it fits in the buffer
             newRemainingCapacity = leftBufferRemainingCapacity - packet.getSize();
             if (newRemainingCapacity >= 0) {
@@ -192,26 +201,50 @@ public class Link implements Updatable {
                 leftPacketBuffer.add(new TransmittingPacket(packet, Direction.RIGHT,
                         RunSim.getCurrentTime()));
                 leftBufferRemainingCapacity = newRemainingCapacity;
+                writer_left.println("sent packet on left");
                 return true;
             }
         }
         // Likewise if coming from right
         else if (sendingNode == rightNode) {
+            writer_right.println("adding packet " + packet.getID());
             newRemainingCapacity = rightBufferRemainingCapacity - packet.getSize();
             if (newRemainingCapacity >= 0) {
                 rightPacketBuffer.add(new TransmittingPacket(packet, Direction.LEFT,
                     RunSim.getCurrentTime()));
                 rightBufferRemainingCapacity = newRemainingCapacity;
+                writer_right.println("sent packet on right");
                 return true;
             }
         }
         // If it came from somewhere else, something is wrong
-        else
+        else {
             System.out.println("addPacket() from unconnected node");
+        }
 
         // We dropped this packet
         packetDrops.incrementAndGet();
         return false;
+    }
+
+    /**
+     * Clears the buffers (we want to do this if we have a timeout or retransmit to avoid sending
+     * a lot of unnecessary packets).
+     * @param sendingNode: the node we're sending from
+     */
+    public void clearBuffer(Node sendingNode) {
+        // We want to clear the buffer we're sending from
+        if (sendingNode == leftNode) {
+            leftPacketBuffer.clear();
+            leftBufferRemainingCapacity = linkBuffer;
+        }
+        else if (sendingNode == rightNode) {
+            rightPacketBuffer.clear();
+            rightBufferRemainingCapacity = linkBuffer;
+        }
+        else {
+            System.out.println("Something went terribly wrong");
+        }
     }
 
     /**

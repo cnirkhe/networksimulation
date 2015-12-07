@@ -134,7 +134,7 @@ public class Host extends Node {
         this.downloadsBySource = downloadsBySource;
         this.protocol = protocol;
         try {
-            this.writer = new PrintWriter("logging_file.txt", "UTF-8");
+            this.writer = new PrintWriter("logging_file_" + address + ".txt", "UTF-8");
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -197,6 +197,7 @@ public class Host extends Node {
                 Integer nextPacketID = flow.packets.peek().getID();
                 // If the ACK is for a new packet, we know the destination has
                 // received packets at least up to that one
+                writer.write(packetID + " " + nextPacketID + " packet ids");
                 if (packetID > nextPacketID && packetID - 1 <= flow.maxPacketID) {
                     writer.println("this is bs");
                     writer.println(packetID);
@@ -236,6 +237,7 @@ public class Host extends Node {
                 // Otherwise the destination is still expecting the first
                 //  packet in the queue
                 else if (packetID.equals(nextPacketID)) {
+                    writer.println("we gotta retransmit " + (flow.lastACKCount + 1) + " " + flow.mostRecentRetransmittedPacket);
                     // Increase the number of times the destination has reported
                     // a packet out of order
                     flow.lastACKCount++;
@@ -248,6 +250,7 @@ public class Host extends Node {
                         System.out.println("FAST RETRANSMIT");
                         DataPacket packet = flow.packets.peek();
                         flow.sendTimes.put(packet.getID(), RunSim.getCurrentTime());
+                        this.link.clearBuffer(this);
                         this.link.addPacket(packet, this);
                         // Since everything we sent won't go through, reset the window size to
                         // 1 (since we just retransmitted a packet).
@@ -301,6 +304,7 @@ public class Host extends Node {
      * @param packet The Setup packet
      */
     private void receiveDataPacket(DataPacket packet) {
+        writer.println("Data packet " + packet.getID() + " received at host " + address);
         System.out.println("Data packet " + packet.getID() + " received at host " + address);
         // Look for the source host in our HashMap
         LinkedList<Download> downloads = this.downloadsBySource.get(packet.getSource());
@@ -374,6 +378,7 @@ public class Host extends Node {
                         if (flow.sendTimes.get(packetID) + this.timeoutLength <
                             RunSim.getCurrentTime())
                         {
+                            /*
                             // If we retransmit, we re-enter slow start with ssthresh = half window size
                             if (protocol == Main.Protocol.RENO) {
                                 if (flow.windowSize / 2 < 2) {
@@ -384,9 +389,12 @@ public class Host extends Node {
                                 }
                                 flow.slowStart = true;
                                 flow.windowSize = initWindowSize;
-                            }
+                            }*/
                             System.out.println("TCP RETRANSMIT");
                             flow.sendTimes.put(packetID, RunSim.getCurrentTime());
+                            flow.windowOccupied = 1;
+                            flow.mostRecentQueued = packetID;
+                            link.clearBuffer(this);
                             this.link.addPacket(flow.packets.get(packetID -
                                 flow.packets.peek().getID()), this);
                         }
@@ -411,6 +419,7 @@ public class Host extends Node {
                                 flow.awaitingRetransmit = false;
                             }
                             flow.windowOccupied++;
+                            writer.println("adding packet " + packet.getID());
                             this.link.addPacket(packet, this);
                             writer.println("Added packet " + packet.getID());
                             flow.sendTimes.put(packet.getID(), RunSim.getCurrentTime());
