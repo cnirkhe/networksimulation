@@ -14,7 +14,7 @@ public class Router extends Node
      */
     private static final Integer TABLE_BROADCAST_PERIOD = 100;
 
-    private static final Integer TABLE_UPDATE_PERIOD = 300;
+    private static final Integer TABLE_UPDATE_PERIOD = 100;
 
     /**
      * The time left in the period before table update
@@ -63,21 +63,23 @@ public class Router extends Node
     }
 
     public void initializeRoutingTable() {
-        currentRoutingTable = new HashMap<>();
+        nextRoutingTable = new HashMap<>();
 
         //Add neighbors
         for(Link link : links) {
             Node neighbor = link.getOtherEnd(this);
             Pair<Double, Link> neighborInformation = Pair.of(link.getDelay(), link);
-            currentRoutingTable.put(neighbor, neighborInformation);
+            nextRoutingTable.put(neighbor, neighborInformation);
         }
 
         //Itself
         Pair<Double, Link> selfInformation = Pair.of(0.0, (Link) null);
-        currentRoutingTable.put(this, selfInformation);
-
-        nextRoutingTable = new HashMap<>();
         nextRoutingTable.put(this, selfInformation);
+
+        if(currentRoutingTable == null) {
+            currentRoutingTable = nextRoutingTable;
+            initializeRoutingTable();
+        }
     }
 
     /**
@@ -86,6 +88,10 @@ public class Router extends Node
      * @param neighborRoutingTable and the routing table of the neighbor
      */
     private void updateRoutingTable(Link connectingLink, HashMap<Node,Pair<Double,Link>> neighborRoutingTable) {
+
+        //TODO Remove (placed for debug purposes only)
+        Node neighbor = connectingLink.getOtherEnd(this);
+
         for(Node node : neighborRoutingTable.keySet()) {
             Pair<Double, Link> neighborsKnowledge = neighborRoutingTable.get(node);
 
@@ -161,10 +167,7 @@ public class Router extends Node
             }
 
             currentRoutingTable = nextRoutingTable;
-
-            nextRoutingTable = new HashMap<>();
-            Pair<Double, Link> selfInformation = Pair.of(0.0, (Link) null);
-            nextRoutingTable.put(this, selfInformation);
+            initializeRoutingTable();
 
         } else {
             timeLeftInUpdatePeriod -= intervalTime;

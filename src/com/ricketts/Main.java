@@ -1,14 +1,7 @@
 package com.ricketts;
 
-import com.sun.tools.javac.util.Pair;
-import org.json.JSONObject;
-
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 public class Main {
     public static boolean DEBUG = true;
@@ -60,7 +53,7 @@ public class Main {
             Integer currentTime = RunSim.getCurrentTime(), nextTime;
             while (currentTime < initialTime + 30000) {
 
-                if(currentTime > initialTime + 2000) {
+                if(currentTime > initialTime + 10000) {
                     System.out.println("pause");
                 }
 

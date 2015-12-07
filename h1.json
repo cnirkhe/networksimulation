@@ -1,7 +1,7 @@
 {"network": {
   "hosts" : [
     {"address": "h0", "link": 0},
-    {"address": "h1", "link": 2},
+    {"address": "h1", "link": 5},
   ],
   "routers" : [
     {"address": "r1", "links": [0, 1, 2]},
