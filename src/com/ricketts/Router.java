@@ -12,9 +12,9 @@ public class Router extends Node
     /**
      * The period at which the Routing Table is broadcast to all of its neighbors
      */
-    private static final Integer TABLE_BROADCAST_PERIOD = 100;
+    private static final Integer TABLE_BROADCAST_PERIOD = 80;
 
-    private static final Integer TABLE_UPDATE_PERIOD = 100;
+    private static final Integer TABLE_UPDATE_PERIOD = 80;
 
     /**
      * The time left in the period before table update

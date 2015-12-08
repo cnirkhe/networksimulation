@@ -1,0 +1,32 @@
+{"network": {
+    "hosts" : [
+        {"address": 1, "link": 4},
+        {"address": 2, "link": 5},
+        {"address": 3, "link": 6},
+        {"address": 4, "link": 7},
+        {"address": 5, "link": 8},
+        {"address": 6, "link": 9}
+        ],
+    "links" : [
+        {"id": 1, "capacity": 10000000, "transmissionDelay": 10, "bufferSize": 128000},
+        {"id": 2, "capacity": 10000000, "transmissionDelay": 10, "bufferSize": 128000},
+        {"id": 3, "capacity": 10000000, "transmissionDelay": 10, "bufferSize": 128000},
+        {"id": 4, "capacity": 12500000, "transmissionDelay": 10, "bufferSize": 128000},
+        {"id": 5, "capacity": 12500000, "transmissionDelay": 10, "bufferSize": 128000},
+        {"id": 6, "capacity": 12500000, "transmissionDelay": 10, "bufferSize": 128000},
+        {"id": 7, "capacity": 12500000, "transmissionDelay": 10, "bufferSize": 128000},
+        {"id": 8, "capacity": 12500000, "transmissionDelay": 10, "bufferSize": 128000},
+        {"id": 9, "capacity": 12500000, "transmissionDelay": 10, "bufferSize": 128000},
+        ],
+    "flows" : [
+        {"id": 1, "source": 1, "destination": 5, "dataAmount": 35000000, "startTime": 500},
+        {"id": 2, "source": 2, "destination": 3, "dataAmount": 15000000, "startTime": 10000},
+        {"id": 3, "source": 4, "destination": 6, "dataAmount": 30000000, "startTime": 20000}
+        ],
+    "routers": [
+        {"address": "r1", "links": [1,4,5]},
+        {"address": "r2", "links": [1,2,6]},
+        {"address": "r3", "links": [2,3,7]},
+        {"address": "r4", "links": [3,8,9]}
+    ]
+}}

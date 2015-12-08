@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Host extends Node {
 
     private final static Integer initWindowSize = 1;
-    private final static Integer initTimeoutLength = 30000;
+    private final static Integer initTimeoutLength = 700;
     private final static Double timeoutLengthCatchupFactor = 0.1;
 
     private Link link;
