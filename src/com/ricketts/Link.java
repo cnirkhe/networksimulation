@@ -200,6 +200,7 @@ public class Link implements Updatable {
         // If packet is coming from the left
         if (sendingNode == leftNode) {
             writer_left.println("adding " + type + " packet " + packet.getID());
+            writer_left.println("remaining capacity " + leftBufferRemainingCapacity);
             // Check if it fits in the buffer
             newRemainingCapacity = leftBufferRemainingCapacity - packet.getSize();
             if (newRemainingCapacity >= 0) {
@@ -213,6 +214,7 @@ public class Link implements Updatable {
         // Likewise if coming from right
         else if (sendingNode == rightNode) {
             writer_right.println("adding " + type + " packet " + packet.getID());
+            writer_right.println("remaining capacity " + rightBufferRemainingCapacity);
             newRemainingCapacity = rightBufferRemainingCapacity - packet.getSize();
             if (newRemainingCapacity >= 0) {
                 rightPacketBuffer.add(new TransmittingPacket(packet, Direction.LEFT, Main.currentTime.intValue()));
