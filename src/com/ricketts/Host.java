@@ -495,7 +495,7 @@ public class Host extends Node {
                         }
                     }
                     flow.flow.flowAnalyticsCollector.addToFlowRates(((double) flow.currBitsSent.get() / 100000) / ((double) intervalTime / 1000), overallTime);
-                    flow.flow.flowAnalyticsCollector.addToWindowSize(flow.windowSize, overallTime);
+                    flow.flow.flowAnalyticsCollector.addToWindowSize(flow.windowSize, Main.currentTime);
                     // not sure how to do packet delay
                 }
             }
