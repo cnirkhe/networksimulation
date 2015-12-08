@@ -28,7 +28,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String filename = new String("h1.json");
+        String filename = new String("h0.json");
         String f2 = filename.substring(0, filename.length() - 5);
         InputParser ip = new InputParser();
         ip.parseJSON(filename);
