@@ -28,7 +28,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String filename = new String("h0.json");
+        String filename = new String("h1.json");
         String f2 = filename.substring(0, filename.length() - 5);
         InputParser ip = new InputParser();
         ip.parseJSON(filename);
@@ -111,6 +111,11 @@ public class Main {
             packetDelay.add(curr.get(2));
         }
 
+        if (protocol == Protocol.RENO) {
+            f2 += "RENO";
+        } else if (protocol == Protocol.FAST) {
+            f2 += "FAST";
+        }
         OverlaidPlot op1 = new OverlaidPlot("Left Buffer", "Left Buffer Occupancy " + f2 + ".png", leftBuffer,
                 "Time (ms)", "Buffer occupancy (pkts)", 888, 888);
         OverlaidPlot op2 = new OverlaidPlot("Right Buffer", "Right Buffer Occupancy " + f2 + ".png", rightBuffer,

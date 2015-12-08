@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Host extends Node {
 
     private final static Integer initWindowSize = 1;
-    private final static Integer initTimeoutLength = 30000;
+    private final static Integer initTimeoutLength = 700;
     private final static Double timeoutLengthCatchupFactor = 0.1;
     private final static Integer TCPFastUpdateInterval = 200;
     private final static Double TCPFastAlpha = 20.0;
@@ -224,6 +224,8 @@ public class Host extends Node {
 
                     Integer newRoundTripTime =
                             Main.currentTime.intValue() - flow.sendTimes.get(packetID - 1);
+                    // System.out.println("newRTT = " + newRoundTripTime);
+                    flow.flow.flowAnalyticsCollector.addToPacketDelay(newRoundTripTime, Main.currentTime);
                     Integer timeSinceLastTCPFastUpdate = Main.currentTime - flow.lastUpdate;
 
 
@@ -281,11 +283,13 @@ public class Host extends Node {
                             flow.stdDevRoundTripTime = newRoundTripTime * 1.0;
                         } else {
                             flow.stdDevRoundTripTime = flow.stdDevRoundTripTime * (1 - timeoutLengthCatchupFactor)
-                                    + Math.abs(newRoundTripTime - flow.avgRoundTripTime) * timeoutLengthCatchupFactor;
+                                    + Math.abs(newRoundTripTime - flow.stdDevRoundTripTime) * timeoutLengthCatchupFactor;
                         }
                         // update timeoutLength
-                        // flow.timeoutLength = (int) (flow.avgRoundTripTime + 4 * flow.stdDevRoundTripTime);
-                        flow.timeoutLength = initTimeoutLength;
+                        flow.timeoutLength = (int) (flow.avgRoundTripTime + 4 * flow.stdDevRoundTripTime);
+                        System.out.println("avgRTT = " + flow.avgRoundTripTime +
+                            "stdDevRTT = " + flow.stdDevRoundTripTime +
+                            "timeoutLength = " + flow.timeoutLength);
 
 
 

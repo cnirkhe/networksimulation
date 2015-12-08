@@ -66,7 +66,7 @@ public class OverlaidPlot extends ApplicationFrame
         XYDotRenderer render = new XYDotRenderer();
         render.setDotWidth(5);
         render.setDotHeight(5);
-        plot.setRenderer(render);
+        // plot.setRenderer(render);
         final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
         rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
         final NumberAxis domainAxis = (NumberAxis) plot.getDomainAxis();

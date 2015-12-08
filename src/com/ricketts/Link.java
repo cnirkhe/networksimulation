@@ -163,9 +163,9 @@ public class Link implements Updatable {
     }
 
     private Double getBufferDelay(Node node) {
-        if(node == leftNode) {
+        if(node == this.leftNode) {
             return getBufferDelay(Direction.RIGHT);
-        } else if (node == rightNode) {
+        } else if (node == this.rightNode) {
             return getBufferDelay(Direction.LEFT);
         } else
             return 0.0;
@@ -178,10 +178,10 @@ public class Link implements Updatable {
 
 
     public Node getOtherEnd(Node oneEnd) {
-        if (oneEnd == leftNode) {
-            return rightNode;
-        } else if (oneEnd == rightNode) {
-            return leftNode;
+        if (oneEnd == this.leftNode) {
+            return this.rightNode;
+        } else if (oneEnd == this.rightNode) {
+            return this.leftNode;
         } else {
             return null;
         }
@@ -229,7 +229,7 @@ public class Link implements Updatable {
         }
 
         // We dropped this packet
-        packetDrops = packetDrops + 1;
+        this.packetDrops = this.packetDrops + 1;
         return false;
     }
 
