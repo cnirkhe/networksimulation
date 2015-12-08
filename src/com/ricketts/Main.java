@@ -17,7 +17,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String filename = new String("h1.json");
+        String filename = new String("hdebugrouter.json");
         String f2 = filename.substring(0, filename.length() - 5);
         InputParser ip = new InputParser();
         ip.parseJSON(filename);
@@ -54,9 +54,9 @@ public class Main {
         updatableLinkedList.addAll(nodes);
         updatableLinkedList.addAll(links);
 
-        Integer intervalStep = 5;
+        Integer intervalStep = 10;
 
-        while (currentTime < 150000) {
+        while (currentTime < 1500000) {
 
             Iterator<Flow> flowIterator = flows.iterator();
             while(flowIterator.hasNext()) {
@@ -70,8 +70,8 @@ public class Main {
                 u.update(intervalStep, currentTime);
             }
 
-            if(currentTime % 1000 == 0)
-                System.out.println("pause");
+            if(currentTime % 2000 == 0)
+                System.out.println("pause at " + currentTime);
 
             currentTime += intervalStep;
        }

@@ -10,7 +10,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Link implements Updatable {
 
-    private final Integer BUFFER_DELAY_PERIOD = 200;
+    private final Integer BUFFER_DELAY_PERIOD = 2000;
 
     private Integer timeSinceReBufferDelay;
 
@@ -168,8 +168,8 @@ public class Link implements Updatable {
     }
 
     public Double getDelay(Node node) {
-        return getLinkDelay().doubleValue();
-        //return getLinkDelay() + getBufferDelay(node);
+        //return getLinkDelay().doubleValue();
+        return getLinkDelay() + getBufferDelay(node);
     }
 
 
