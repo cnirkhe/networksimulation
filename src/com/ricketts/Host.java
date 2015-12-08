@@ -12,7 +12,8 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class Host extends Node {
 
     private final static Integer initWindowSize = 1;
-    private final static Integer timeoutLength = 30000;
+    private final static Integer initTimeoutLength = 3000;
+    private final static Double timeoutLengthCatchupFactor = 0.1;
 
     private Link link;
     /**
@@ -49,6 +50,7 @@ public class Host extends Node {
     private class ActiveFlow {
         public Flow flow;
         public Integer windowSize;
+        public Integer timeoutLength;
         // In Reno CA phase, every ACK increases cwnd by 1/cwnd. We're keeping
         // track of these partial windows added and then adding 1 to windowSize once
         // once partialWindowSize == windowSize.
@@ -75,6 +77,14 @@ public class Host extends Node {
          */
         public HashMap<Integer, Integer> sendTimes;
 
+
+        /**
+         * A set of information on round trip times of packets
+         */
+        public Integer minRoundTripTime;
+        public Double avgRoundTripTime;
+        public Double stdDevRoundTripTime;
+
         /**
          * Bits sent withn this update session
          */
@@ -83,11 +93,15 @@ public class Host extends Node {
         public ActiveFlow(Host host, Flow flow) {
             this.flow = flow;
             this.windowSize = initWindowSize;
+            this.timeoutLength = initTimeoutLength;
             this.packets = flow.generateDataPackets(host.totalGenPackets);
             host.totalGenPackets += this.packets.size();
             this.maxPacketID = host.totalGenPackets - 1;
             this.lastACKCount = 0;
             this.sendTimes = new HashMap<>();
+            this.minRoundTripTime = Integer.MAX_VALUE;
+            this.avgRoundTripTime = null;
+            this.stdDevRoundTripTime = null;
             this.currBitsSent = new AtomicInteger(0);
             this.partialWindowSize = 0;
             this.slowStart = true;
@@ -231,8 +245,32 @@ public class Host extends Node {
                     // Remove all the packets we know to have be received from
                     // the flow's queue
                     else {
-                        while (flow.packets.peek().getID() < packetID)
+                        while (flow.packets.peek().getID() < packetID) {
+                            Integer newRoundTripTime =
+                                    RunSim.getCurrentTime() - flow.sendTimes.get(flow.packets.peek().getID());
+                            // update minRoundTripTime
+                            flow.minRoundTripTime = Math.min(flow.minRoundTripTime, newRoundTripTime);
+                            // update avgRoundTripTime
+                            if (flow.avgRoundTripTime == null) {
+                                flow.avgRoundTripTime = newRoundTripTime * 1.0;
+                            } else {
+                                flow.avgRoundTripTime = flow.avgRoundTripTime * (1 - timeoutLengthCatchupFactor)
+                                        + newRoundTripTime * timeoutLengthCatchupFactor;
+                            }
+                            // update stdDevRoundTripTime
+                            if (flow.stdDevRoundTripTime == null) {
+                                flow.stdDevRoundTripTime = newRoundTripTime * 1.0;
+                            } else {
+                                flow.stdDevRoundTripTime = flow.stdDevRoundTripTime * (1 - timeoutLengthCatchupFactor)
+                                        + Math.abs(newRoundTripTime - flow.avgRoundTripTime) * timeoutLengthCatchupFactor;
+                            }
+
+                            // update timeoutLength
+                            // flow.timeoutLength = (int) (flow.avgRoundTripTime + 4 * flow.stdDevRoundTripTime);
+                            // flow.timeoutLength = initTimeoutLength;
+
                             flow.sendTimes.remove(flow.packets.remove().getID());
+                        }
                     }
                     break;
                 }
@@ -374,7 +412,7 @@ public class Host extends Node {
                     // timeout time has elapsed since it was sent, and
                     // retransmit if so
                     for (Integer packetID : flow.sendTimes.keySet()) {
-                        if (flow.sendTimes.get(packetID) + this.timeoutLength <
+                        if (flow.sendTimes.get(packetID) + flow.timeoutLength <
                             Main.currentTime)
                         {
                             // If we retransmit, we re-enter slow start with ssthresh = half window size
