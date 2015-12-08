@@ -10,10 +10,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * A Host is a Node meant to simulate a source or sink of data. Hosts have only one Link. Flows begin at Hosts.
  */
 public class Host extends Node {
-
     private final static Integer initWindowSize = 1;
     private final static Integer initTimeoutLength = 3000;
     private final static Double timeoutLengthCatchupFactor = 0.1;
+    private final static Double TCPFastGamma = 0.3;
+    private final static Double TCPFastAlpha = 70.0;
 
     private Link link;
     /**
@@ -213,6 +214,31 @@ public class Host extends Node {
                 // received packets at least up to that one
                 writer.write(packetID + " " + nextPacketID + " packet ids");
                 if (packetID > nextPacketID && packetID - 1 <= flow.maxPacketID) {
+
+
+                    Integer newRoundTripTime =
+                            Main.currentTime.intValue() - flow.sendTimes.get(packetID - 1);
+                    // update minRoundTripTime
+                    flow.minRoundTripTime = Math.min(flow.minRoundTripTime, newRoundTripTime);
+                    // update avgRoundTripTime
+                    if (flow.avgRoundTripTime == null) {
+                        flow.avgRoundTripTime = newRoundTripTime * 1.0;
+                    } else {
+                        flow.avgRoundTripTime = flow.avgRoundTripTime * (1 - timeoutLengthCatchupFactor)
+                                + newRoundTripTime * timeoutLengthCatchupFactor;
+                    }
+                    // update stdDevRoundTripTime
+                    if (flow.stdDevRoundTripTime == null) {
+                        flow.stdDevRoundTripTime = newRoundTripTime * 1.0;
+                    } else {
+                        flow.stdDevRoundTripTime = flow.stdDevRoundTripTime * (1 - timeoutLengthCatchupFactor)
+                                + Math.abs(newRoundTripTime - flow.avgRoundTripTime) * timeoutLengthCatchupFactor;
+                    }
+                    // update timeoutLength
+                    // flow.timeoutLength = (int) (flow.avgRoundTripTime + 4 * flow.stdDevRoundTripTime);
+                    flow.timeoutLength = initTimeoutLength;
+
+
                     writer.println("this is bs");
                     writer.println(packetID);
                     flow.windowOccupied--;
@@ -238,6 +264,11 @@ public class Host extends Node {
                                 flow.partialWindowSize = 0;
                             }
                         }
+                    } else if (protocol == Main.Protocol.FAST) {
+                        flow.windowSize = Math.min(2 * flow.windowSize,
+                                (int) ((1 - TCPFastGamma) * flow.windowSize
+                                + TCPFastGamma * ((1.0 * flow.minRoundTripTime) / newRoundTripTime
+                                        * flow.windowSize + TCPFastAlpha)));
                     }
                     // If that was the last ACK, discard the flow
                     if (nextPacketID.equals(flow.maxPacketID))
@@ -245,32 +276,8 @@ public class Host extends Node {
                     // Remove all the packets we know to have be received from
                     // the flow's queue
                     else {
-                        while (flow.packets.peek().getID() < packetID) {
-                            Integer newRoundTripTime =
-                                    Main.currentTime.intValue() - flow.sendTimes.get(flow.packets.peek().getID());
-                            // update minRoundTripTime
-                            flow.minRoundTripTime = Math.min(flow.minRoundTripTime, newRoundTripTime);
-                            // update avgRoundTripTime
-                            if (flow.avgRoundTripTime == null) {
-                                flow.avgRoundTripTime = newRoundTripTime * 1.0;
-                            } else {
-                                flow.avgRoundTripTime = flow.avgRoundTripTime * (1 - timeoutLengthCatchupFactor)
-                                        + newRoundTripTime * timeoutLengthCatchupFactor;
-                            }
-                            // update stdDevRoundTripTime
-                            if (flow.stdDevRoundTripTime == null) {
-                                flow.stdDevRoundTripTime = newRoundTripTime * 1.0;
-                            } else {
-                                flow.stdDevRoundTripTime = flow.stdDevRoundTripTime * (1 - timeoutLengthCatchupFactor)
-                                        + Math.abs(newRoundTripTime - flow.avgRoundTripTime) * timeoutLengthCatchupFactor;
-                            }
-
-                            // update timeoutLength
-                            // flow.timeoutLength = (int) (flow.avgRoundTripTime + 4 * flow.stdDevRoundTripTime);
-                            // flow.timeoutLength = initTimeoutLength;
-
+                        while (flow.packets.peek().getID() < packetID)
                             flow.sendTimes.remove(flow.packets.remove().getID());
-                        }
                     }
                     break;
                 }
