@@ -1,6 +1,5 @@
 package com.ricketts;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 
 /**
@@ -40,6 +39,9 @@ public class Flow {
     public Host getSource() { return this.source; }
     public Host getDestination() { return this.destination; }
     public Integer getID() { return this.id; }
+    public Integer getStartTime() {
+        return startTime;
+    }
 
     /**
      * This method generates a LinkedList of DataPackets corresponding to the size of data of the flow.

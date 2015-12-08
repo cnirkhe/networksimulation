@@ -1,0 +1,18 @@
+{"network": {
+  "hosts" : [
+    {"address": "h1", "link": 0},
+    {"address": "h2", "link": 2}
+  ],
+  "routers" : [
+    {"address": "r1", "links": [0, 1]},
+    {"address": "r2", "links": [1, 2]}
+  ],
+  "links" : [
+    {"id": 0, "capacity": 10000000, "transmissionDelay": 10, "bufferSize": 64000},
+    {"id": 1, "capacity": 10000000, "transmissionDelay": 10, "bufferSize": 64000},
+    {"id": 2, "capacity": 10000000, "transmissionDelay": 10, "bufferSize": 64000}
+  ],
+  "flows" : [
+    {"id": 1, "source": "h1", "destination": "h2", "dataAmount": 20000000, "startTime": 1000}
+  ]
+}}

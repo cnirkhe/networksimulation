@@ -1,7 +1,9 @@
 package com.ricketts;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 
 public class Main {
 
@@ -15,7 +17,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String filename = new String("h0.json");
+        String filename = new String("h1.json");
         String f2 = filename.substring(0, filename.length() - 5);
         InputParser ip = new InputParser();
         ip.parseJSON(filename);
@@ -38,8 +40,6 @@ public class Main {
 
         // Make flows
         ArrayList<Flow> flows = ip.extractFlows(addressBook, f2, protocol);
-        for (Flow flow : flows)
-            flow.getSource().addFlow(flow);
 
         // Add nodes to links
         InputParser.addNodesToLinks(nodes);
@@ -54,16 +54,27 @@ public class Main {
         updatableLinkedList.addAll(nodes);
         updatableLinkedList.addAll(links);
 
-        Integer intervalStep = 10;
+        Integer intervalStep = 5;
 
         while (currentTime < 150000) {
 
-            System.out.println("looping at time " + currentTime);
-            for(Updatable u : updatableLinkedList) {
-                u.update(1, currentTime);
+            Iterator<Flow> flowIterator = flows.iterator();
+            while(flowIterator.hasNext()) {
+                Flow flow = flowIterator.next();
+                if(flow.getStartTime().equals(currentTime)) {
+                    flow.getSource().addFlow(flow);
+                }
             }
+
+            for(Updatable u : updatableLinkedList) {
+                u.update(intervalStep, currentTime);
+            }
+
+            if(currentTime % 1000 == 0)
+                System.out.println("pause");
+
             currentTime += intervalStep;
-        }
+       }
 
 
         // Get flow and link stats

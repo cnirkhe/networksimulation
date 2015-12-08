@@ -286,8 +286,6 @@ public class Host extends Node {
      * @param packet The Setup packet
      */
     private void receiveSetupPacket(SetupPacket packet) {
-        System.out.println("Setup packet " + packet.getID() + " received at host " + address);
-
         // Look for the source host in our HashMap
         LinkedList<Download> downloads = this.downloadsBySource.get(packet.getSource());
         // If there have already been downloads from this host, add another to the queue
@@ -307,7 +305,6 @@ public class Host extends Node {
      */
     private void receiveDataPacket(DataPacket packet) {
         writer.println("Data packet " + packet.getID() + " received at host " + address);
-        System.out.println("Data packet " + packet.getID() + " received at host " + address);
         // Look for the source host in our HashMap
         LinkedList<Download> downloads = this.downloadsBySource.get(packet.getSource());
         Integer packetID = packet.getID();

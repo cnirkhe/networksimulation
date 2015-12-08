@@ -10,14 +10,14 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 public class Link implements Updatable {
 
-    private final Integer BUFFER_DELAY_PERIOD = 2000;
+    private final Integer BUFFER_DELAY_PERIOD = 200;
 
     private Integer timeSinceReBufferDelay;
 
     /**
      * Orientations for Packets flowing on the link
      */
-    private enum Direction {LEFT, RIGHT}
+    public enum Direction {LEFT, RIGHT}
 
     private final Integer linkID;
     /**
@@ -47,7 +47,7 @@ public class Link implements Updatable {
     /**
      * Packet drops for current interval
      */
-    private AtomicInteger packetDrops;
+    private Integer packetDrops;
     private LinkAnalyticsCollector linkAnalyticsCollector;
 
     /**
@@ -112,7 +112,7 @@ public class Link implements Updatable {
         this.rightPacketBuffer = new LinkedList<>();
         this.leftBufferRemainingCapacity = linkBuffer;
         this.rightBufferRemainingCapacity = linkBuffer;
-        this.packetDrops = new AtomicInteger(0);
+        this.packetDrops = 0;
         this.totalBitsTransmitted = new AtomicInteger(0);
         this.linkAnalyticsCollector = new LinkAnalyticsCollector(linkID, name);
         this.protocol = protocol;
@@ -149,7 +149,7 @@ public class Link implements Updatable {
     public void setRightNode(Node node) { this.rightNode = node; }
 
 
-    private Double getBufferDelay(Direction direction) {
+    public Double getBufferDelay(Direction direction) {
         if(direction == Direction.LEFT) {
             return latestLeftBufferDelayEstimate;
         }
@@ -168,7 +168,8 @@ public class Link implements Updatable {
     }
 
     public Double getDelay(Node node) {
-        return getLinkDelay() + getBufferDelay(node);
+        return getLinkDelay().doubleValue();
+        //return getLinkDelay() + getBufferDelay(node);
     }
 
 
@@ -191,13 +192,7 @@ public class Link implements Updatable {
      */
     public Boolean addPacket(Packet packet, Node sendingNode) {
         Integer newRemainingCapacity;
-        String type;
-        if (packet instanceof ACKPacket) {
-            type = "ack";
-        }
-        else {
-            type = "data";
-        }
+        String type = (packet instanceof ACKPacket) ? "ack" : "data";
         // If packet is coming from the left
         if (sendingNode == leftNode) {
             writer_left.println("adding " + type + " packet " + packet.getID());
@@ -205,8 +200,7 @@ public class Link implements Updatable {
             newRemainingCapacity = leftBufferRemainingCapacity - packet.getSize();
             if (newRemainingCapacity >= 0) {
                 // If so, add it and update the remaining capacity
-                leftPacketBuffer.add(new TransmittingPacket(packet, Direction.RIGHT,
-                        Main.currentTime));
+                leftPacketBuffer.add(new TransmittingPacket(packet, Direction.RIGHT, Main.currentTime.intValue()));
                 leftBufferRemainingCapacity = newRemainingCapacity;
                 writer_left.println("sent packet on left");
                 return true;
@@ -217,8 +211,7 @@ public class Link implements Updatable {
             writer_right.println("adding " + type + " packet " + packet.getID());
             newRemainingCapacity = rightBufferRemainingCapacity - packet.getSize();
             if (newRemainingCapacity >= 0) {
-                rightPacketBuffer.add(new TransmittingPacket(packet, Direction.LEFT,
-                    Main.currentTime));
+                rightPacketBuffer.add(new TransmittingPacket(packet, Direction.LEFT, Main.currentTime.intValue()));
                 rightBufferRemainingCapacity = newRemainingCapacity;
                 writer_right.println("sent packet on right");
                 return true;
@@ -230,7 +223,7 @@ public class Link implements Updatable {
         }
 
         // We dropped this packet
-        packetDrops.incrementAndGet();
+        packetDrops = packetDrops + 1;
         return false;
     }
 
@@ -263,6 +256,7 @@ public class Link implements Updatable {
      * @param overallTime Overall simulation time
      */
     public void update(Integer intervalTime, Integer overallTime) {
+
         if(timeSinceReBufferDelay < 0) {
             timeSinceReBufferDelay = BUFFER_DELAY_PERIOD;
 
@@ -287,7 +281,6 @@ public class Link implements Updatable {
 
 
         // Reset packets drops and total bits transmitted for new interval
-        packetDrops.set(0);
         totalBitsTransmitted.set(0);
         // While there's time left in the interval,,,
         Integer usageLeft = intervalTime * this.linkRate, packetBits, endOfDelay;
@@ -302,12 +295,11 @@ public class Link implements Updatable {
                 TransmittingPacket rightPacket = this.rightPacketBuffer.peek();
                 if (leftPacket == null) {
                     if (rightPacket == null) {
-                        System.out.println("null shit");
                         return;
                     }
                     else {
                         this.currentlyTransmittingPacket = rightPacketBuffer.remove();
-                        sumRightBufferTime += Main.currentTime - currentlyTransmittingPacket.transmissionStartTime;
+                        sumRightBufferTime += Main.currentTime.intValue() - currentlyTransmittingPacket.transmissionStartTime;
                         numbRightPktsThruBuffer++;
                         this.rightBufferRemainingCapacity += rightPacket.packet.getSize();
                     }
@@ -316,19 +308,19 @@ public class Link implements Updatable {
                     leftPacket.transmissionStartTime < rightPacket.transmissionStartTime)
                 {    
                     this.currentlyTransmittingPacket = leftPacketBuffer.remove();
-                    sumLeftBufferTime += Main.currentTime - currentlyTransmittingPacket.transmissionStartTime;
+                    sumLeftBufferTime += Main.currentTime.intValue() - currentlyTransmittingPacket.transmissionStartTime;
                     numbLeftPktsThruBuffer++;
                     this.leftBufferRemainingCapacity += leftPacket.packet.getSize();
                 }
                 else {
                     this.currentlyTransmittingPacket = rightPacketBuffer.remove();
-                    sumRightBufferTime += Main.currentTime - currentlyTransmittingPacket.transmissionStartTime;
+                    sumRightBufferTime += Main.currentTime.intValue() - currentlyTransmittingPacket.transmissionStartTime;
                     numbRightPktsThruBuffer++;
                     this.rightBufferRemainingCapacity += rightPacket.packet.getSize();
                 }
 
                 this.currentlyTransmittingPacket.transmissionStartTime =
-                    Main.currentTime;
+                    Main.currentTime.intValue();
                 this.bitsTransmitted = 0;
             }
 
@@ -372,7 +364,8 @@ public class Link implements Updatable {
         linkAnalyticsCollector.addToLeftBuffer((linkBuffer - leftBufferRemainingCapacity) / ((double) intervalTime / 1000), overallTime);
         //System.out.println((linkBuffer - leftBufferRemainingCapacity));
         linkAnalyticsCollector.addToRightBuffer((linkBuffer - rightBufferRemainingCapacity) / ((double) intervalTime / 1000), overallTime);
-        linkAnalyticsCollector.addToPacketLoss(packetDrops.get(), overallTime);
+        linkAnalyticsCollector.addToPacketLoss(packetDrops, overallTime);
+        packetDrops = 0;
         // Want link rates in Mbps
         linkAnalyticsCollector.addToLinkRates(((double) totalBitsTransmitted.get() / 100000) / ((double) intervalTime / 1000), overallTime);
     }
