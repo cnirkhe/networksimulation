@@ -377,7 +377,6 @@ public class Host extends Node {
                         if (flow.sendTimes.get(packetID) + this.timeoutLength <
                             Main.currentTime)
                         {
-                            /*
                             // If we retransmit, we re-enter slow start with ssthresh = half window size
                             if (protocol == Main.Protocol.RENO) {
                                 if (flow.windowSize / 2 < 2) {
@@ -388,7 +387,7 @@ public class Host extends Node {
                                 }
                                 flow.slowStart = true;
                                 flow.windowSize = initWindowSize;
-                            }*/
+                            }
                             System.out.println("TCP RETRANSMIT");
                             flow.sendTimes.put(packetID, Main.currentTime);
                             flow.windowOccupied = 1;

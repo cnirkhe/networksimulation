@@ -17,7 +17,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String filename = new String("hdebugrouter.json");
+        String filename = new String("h1.json");
         String f2 = filename.substring(0, filename.length() - 5);
         InputParser ip = new InputParser();
         ip.parseJSON(filename);
@@ -56,7 +56,7 @@ public class Main {
 
         Integer intervalStep = 10;
 
-        while (currentTime < 1500000) {
+        while (currentTime < 150000) {
 
             Iterator<Flow> flowIterator = flows.iterator();
             while(flowIterator.hasNext()) {
