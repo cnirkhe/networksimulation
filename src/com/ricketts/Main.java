@@ -24,11 +24,11 @@ public class Main {
         public static int RENO = 1;
         public static int FAST = 2;
     }
-    public static int protocol = Protocol.RENO;
+    public static int protocol = Protocol.FAST;
 
     public static void main(String[] args) {
 
-        String filename = new String("h1.json");
+        String filename = new String("t2.json");
         String f2 = filename.substring(0, filename.length() - 5);
         InputParser ip = new InputParser();
         ip.parseJSON(filename);
@@ -67,7 +67,7 @@ public class Main {
 
         Integer intervalStep = 5;
 
-        while (currentTime < 150000) {
+        while (currentTime < 50000) {
 
             Iterator<Flow> flowIterator = flows.iterator();
             while(flowIterator.hasNext()) {
@@ -82,6 +82,9 @@ public class Main {
             }
 
             currentTime += intervalStep;
+
+            if(currentTime % 100 == 0)
+                System.out.println("pause");
        }
 
 

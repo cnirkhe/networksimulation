@@ -352,7 +352,8 @@ public class Link implements Updatable {
         linkAnalyticsCollector.addToPacketLoss(packetDrops, overallTime);
         packetDrops = 0;
         // Want link rates in Mbps
-        linkAnalyticsCollector.addToLinkRates(((double) totalBitsTransmitted / 100000) / ((double) intervalTime / 1000), overallTime);
+        if(linkID == 1 || linkID == 2)
+            linkAnalyticsCollector.addToLinkRates(((double) totalBitsTransmitted / 100000) / ((double) intervalTime / 1000), overallTime);
     }
 
     public ArrayList<XYSeries> getDatasets() {
