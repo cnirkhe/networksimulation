@@ -1,6 +1,10 @@
 package com.ricketts;
 
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.xy.XYSeries;
+
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -370,7 +374,7 @@ public class Link implements Updatable {
         linkAnalyticsCollector.addToLinkRates(((double) totalBitsTransmitted.get() / 100000) / ((double) intervalTime / 1000), overallTime);
     }
 
-    public void generateLinkGraphs() {
-        linkAnalyticsCollector.generateLinkGraphs();
+    public ArrayList<XYSeries> getDatasets() {
+        return linkAnalyticsCollector.getDatasets();
     }
 }

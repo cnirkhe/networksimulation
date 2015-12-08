@@ -1,5 +1,9 @@
 package com.ricketts;
 
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.xy.XYSeries;
+
+import java.util.ArrayList;
 import java.util.LinkedList;
 
 /**
@@ -74,7 +78,12 @@ public class Flow {
         return dataPackets;
     }
 
+    public ArrayList<XYSeries> getDatasets() {
+        return flowAnalyticsCollector.getDatasets();
+    }
+
+    /*
     public void generateFlowGraphs() {
         flowAnalyticsCollector.generateFlowGraphs();
-    }
+    }*/
 }

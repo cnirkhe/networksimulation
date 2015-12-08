@@ -1,5 +1,16 @@
 package com.ricketts;
 
+import com.sun.deploy.security.X509Extended7DeployTrustManager;
+import com.sun.xml.internal.bind.annotation.OverrideAnnotationOf;
+import com.sun.xml.internal.ws.api.streaming.XMLStreamReaderFactory;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYBarRenderer;
+import org.jfree.chart.renderer.xy.XYItemRenderer;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.xy.IntervalXYDataset;
+import org.jfree.data.xy.XYSeries;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -17,7 +28,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String filename = new String("h1.json");
+        String filename = new String("h0.json");
         String f2 = filename.substring(0, filename.length() - 5);
         InputParser ip = new InputParser();
         ip.parseJSON(filename);
@@ -78,12 +89,41 @@ public class Main {
 
 
         // Get flow and link stats
-        for (Flow flowerino : flows) {
-            flowerino.generateFlowGraphs();
+        ArrayList<XYSeries> leftBuffer = new ArrayList<>();
+        ArrayList<XYSeries> rightBuffer = new ArrayList<>();
+        ArrayList<XYSeries> packetLoss = new ArrayList<>();
+        ArrayList<XYSeries> linkRates = new ArrayList<>();
+        for (Link l : links) {
+            ArrayList<XYSeries> curr = l.getDatasets();
+            leftBuffer.add(curr.get(0));
+            rightBuffer.add(curr.get(1));
+            packetLoss.add(curr.get(2));
+            linkRates.add(curr.get(3));
         }
-        for (Link linkerino : links) {
-            linkerino.generateLinkGraphs();
+        ArrayList<XYSeries> flowRates = new ArrayList<>();
+        ArrayList<XYSeries> windowSizes = new ArrayList<>();
+        ArrayList<XYSeries> packetDelay = new ArrayList<>();
+
+        for (Flow f : flows) {
+            ArrayList<XYSeries> curr = f.getDatasets();
+            flowRates.add(curr.get(0));
+            windowSizes.add(curr.get(1));
+            packetDelay.add(curr.get(2));
         }
-        System.out.println("generated graphs");
+
+        OverlaidPlot op1 = new OverlaidPlot("Left Buffer", "Left Buffer Occupancy " + f2 + ".png", leftBuffer,
+                "Time (ms)", "Buffer occupancy (pkts)", 888, 888);
+        OverlaidPlot op2 = new OverlaidPlot("Right Buffer", "Right Buffer Occupancy " + f2 + ".png", rightBuffer,
+                "Time (ms)", "Buffer occupancy (pkts)", 888, 888);
+        OverlaidPlot op3 = new OverlaidPlot("Packet Loss", "Packet Loss " + f2 + ".png", packetLoss,
+                "Time (ms)", "Packet Loss (pkts)", 888, 888);
+        OverlaidPlot op4 = new OverlaidPlot("Link Rates", "Link Rates " + f2 + ".png", linkRates,
+                "Time (ms)", "Link Rate (Mbps)", 888, 888);
+        OverlaidPlot op5 = new OverlaidPlot("Flow Rate", "Flow Rate " + f2 + ".png", flowRates,
+                "Time (ms)", "Flow Rate (Mbps)", 888, 888);
+        OverlaidPlot op6 = new OverlaidPlot("Window Size", "Window Size " + f2 + ".png", windowSizes,
+                "Time (ms)", "Window Size (pkts)", 888, 888);
+        OverlaidPlot op7 = new OverlaidPlot("Packet delay", "Packet Delay " + f2 + ".png", packetDelay,
+                "Time (ms)", "Packet Delay (ms)", 888, 888);
     }
 }
