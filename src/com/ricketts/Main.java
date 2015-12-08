@@ -18,7 +18,7 @@ import java.util.Iterator;
 
 public class Main {
 
-    public static Integer currentTime = 0;
+    public static int currentTime = 0;
 
     public static class Protocol {
         public static int RENO = 1;
@@ -65,7 +65,7 @@ public class Main {
         updatableLinkedList.addAll(nodes);
         updatableLinkedList.addAll(links);
 
-        Integer intervalStep = 10;
+        Integer intervalStep = 5;
 
         while (currentTime < 150000) {
 
@@ -80,9 +80,6 @@ public class Main {
             for(Updatable u : updatableLinkedList) {
                 u.update(intervalStep, currentTime);
             }
-
-            if(currentTime % 2000 == 0)
-                System.out.println("pause at " + currentTime);
 
             currentTime += intervalStep;
        }

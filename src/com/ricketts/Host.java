@@ -36,6 +36,7 @@ public class Host extends Node {
 
     private PrintWriter writer;
     private PrintWriter writer2;
+    private PrintWriter writer3;
 
     /**
      * Protocol we're using
@@ -151,6 +152,7 @@ public class Host extends Node {
         try {
             this.writer = new PrintWriter("logging_file_" + address + ".txt", "UTF-8");
             this.writer2 = new PrintWriter("logging_file_" + address + "2.txt", "UTF-8");
+            this.writer3 = new PrintWriter("arrivaltime_" + address + ".txt", "UTF-8");
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -203,7 +205,7 @@ public class Host extends Node {
      * @param ackPacket the ACK received
      */
     private void receiveACKPacket(ACKPacket ackPacket) {
-        writer.println("ack received" + ackPacket.getID());
+        System.out.println("ACK packet " + ackPacket.getID() + " received at host " + address + " at time " + Main.currentTime);
         Integer packetID = ackPacket.getID();
         //Check to make sure the source of the ACK is from one which we are sending flows to
         LinkedList<ActiveFlow> flows = this.flowsByDestination.get(ackPacket.getSource());
@@ -244,14 +246,16 @@ public class Host extends Node {
                         }
                     }
                     // If that was the last ACK, discard the flow
-                    if (nextPacketID.equals(flow.maxPacketID))
+                    if (nextPacketID.equals(flow.maxPacketID)) {
                         flows.remove(flow);
+                        System.out.println("flow finished. gg no re");
+                    }
                     // Remove all the packets we know to have be received from
                     // the flow's queue
                     else {
                         while (flow.packets.peek().getID() < packetID) {
                             Integer newRoundTripTime =
-                                    Main.currentTime.intValue() - flow.sendTimes.get(flow.packets.peek().getID());
+                                    Main.currentTime - flow.sendTimes.get(flow.packets.peek().getID());
                             // update minRoundTripTime
                             flow.minRoundTripTime = Math.min(flow.minRoundTripTime, newRoundTripTime);
                             // update avgRoundTripTime
@@ -348,7 +352,8 @@ public class Host extends Node {
      * @param packet The Setup packet
      */
     private void receiveDataPacket(DataPacket packet) {
-        writer.println("Data packet " + packet.getID() + " received at host " + address);
+        System.out.println("Data packet " + packet.getID() + " received at host " + address + " at time " + Main.currentTime);
+        writer3.println(packet.getID() + "\t" + Main.currentTime);
         // Look for the source host in our HashMap
         LinkedList<Download> downloads = this.downloadsBySource.get(packet.getSource());
         Integer packetID = packet.getID();
