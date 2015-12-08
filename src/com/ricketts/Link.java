@@ -365,7 +365,7 @@ public class Link implements Updatable {
         //System.out.println((linkBuffer - leftBufferRemainingCapacity));
         linkAnalyticsCollector.addToRightBuffer((linkBuffer - rightBufferRemainingCapacity) / ((double) intervalTime / 1000), overallTime);
         linkAnalyticsCollector.addToPacketLoss(packetDrops, overallTime);
-        packetDrops = 0;
+        //packetDrops = 0;
         // Want link rates in Mbps
         linkAnalyticsCollector.addToLinkRates(((double) totalBitsTransmitted.get() / 100000) / ((double) intervalTime / 1000), overallTime);
     }

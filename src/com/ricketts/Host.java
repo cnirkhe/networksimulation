@@ -13,8 +13,8 @@ public class Host extends Node {
     private final static Integer initWindowSize = 1;
     private final static Integer initTimeoutLength = 3000;
     private final static Double timeoutLengthCatchupFactor = 0.1;
-    private final static Double TCPFastGamma = 0.3;
-    private final static Double TCPFastAlpha = 70.0;
+    private final static Integer TCPFastUpdateInterval = 200;
+    private final static Double TCPFastAlpha = 20.0;
 
     private Link link;
     /**
@@ -52,6 +52,8 @@ public class Host extends Node {
         public Flow flow;
         public Integer windowSize;
         public Integer timeoutLength;
+        // TCP FAST last update time
+        public Integer lastUpdate;
         // In Reno CA phase, every ACK increases cwnd by 1/cwnd. We're keeping
         // track of these partial windows added and then adding 1 to windowSize once
         // once partialWindowSize == windowSize.
@@ -95,6 +97,7 @@ public class Host extends Node {
             this.flow = flow;
             this.windowSize = initWindowSize;
             this.timeoutLength = initTimeoutLength;
+            this.lastUpdate = Main.currentTime;
             this.packets = flow.generateDataPackets(host.totalGenPackets);
             host.totalGenPackets += this.packets.size();
             this.maxPacketID = host.totalGenPackets - 1;
@@ -218,25 +221,7 @@ public class Host extends Node {
 
                     Integer newRoundTripTime =
                             Main.currentTime.intValue() - flow.sendTimes.get(packetID - 1);
-                    // update minRoundTripTime
-                    flow.minRoundTripTime = Math.min(flow.minRoundTripTime, newRoundTripTime);
-                    // update avgRoundTripTime
-                    if (flow.avgRoundTripTime == null) {
-                        flow.avgRoundTripTime = newRoundTripTime * 1.0;
-                    } else {
-                        flow.avgRoundTripTime = flow.avgRoundTripTime * (1 - timeoutLengthCatchupFactor)
-                                + newRoundTripTime * timeoutLengthCatchupFactor;
-                    }
-                    // update stdDevRoundTripTime
-                    if (flow.stdDevRoundTripTime == null) {
-                        flow.stdDevRoundTripTime = newRoundTripTime * 1.0;
-                    } else {
-                        flow.stdDevRoundTripTime = flow.stdDevRoundTripTime * (1 - timeoutLengthCatchupFactor)
-                                + Math.abs(newRoundTripTime - flow.avgRoundTripTime) * timeoutLengthCatchupFactor;
-                    }
-                    // update timeoutLength
-                    // flow.timeoutLength = (int) (flow.avgRoundTripTime + 4 * flow.stdDevRoundTripTime);
-                    flow.timeoutLength = initTimeoutLength;
+                    Integer timeSinceLastTCPFastUpdate = Main.currentTime - flow.lastUpdate;
 
 
                     writer.println("this is bs");
@@ -264,11 +249,10 @@ public class Host extends Node {
                                 flow.partialWindowSize = 0;
                             }
                         }
-                    } else if (protocol == Main.Protocol.FAST) {
-                        flow.windowSize = Math.min(2 * flow.windowSize,
-                                (int) ((1 - TCPFastGamma) * flow.windowSize
-                                + TCPFastGamma * ((1.0 * flow.minRoundTripTime) / newRoundTripTime
-                                        * flow.windowSize + TCPFastAlpha)));
+                    } else if (protocol == Main.Protocol.FAST && timeSinceLastTCPFastUpdate > TCPFastUpdateInterval) {
+                        flow.windowSize = (int) ((1.0 * flow.minRoundTripTime) / newRoundTripTime
+                                        * flow.windowSize + TCPFastAlpha);
+                        flow.lastUpdate = Main.currentTime.intValue();
                     }
                     // If that was the last ACK, discard the flow
                     if (nextPacketID.equals(flow.maxPacketID))
@@ -276,14 +260,39 @@ public class Host extends Node {
                     // Remove all the packets we know to have be received from
                     // the flow's queue
                     else {
-                        while (flow.packets.peek().getID() < packetID)
+
+
+                        // update minRoundTripTime
+                        flow.minRoundTripTime = Math.min(flow.minRoundTripTime, newRoundTripTime);
+                        // update avgRoundTripTime
+                        if (flow.avgRoundTripTime == null) {
+                            flow.avgRoundTripTime = newRoundTripTime * 1.0;
+                        } else {
+                            flow.avgRoundTripTime = flow.avgRoundTripTime * (1 - timeoutLengthCatchupFactor)
+                                    + newRoundTripTime * timeoutLengthCatchupFactor;
+                        }
+                        // update stdDevRoundTripTime
+                        if (flow.stdDevRoundTripTime == null) {
+                            flow.stdDevRoundTripTime = newRoundTripTime * 1.0;
+                        } else {
+                            flow.stdDevRoundTripTime = flow.stdDevRoundTripTime * (1 - timeoutLengthCatchupFactor)
+                                    + Math.abs(newRoundTripTime - flow.avgRoundTripTime) * timeoutLengthCatchupFactor;
+                        }
+                        // update timeoutLength
+                        // flow.timeoutLength = (int) (flow.avgRoundTripTime + 4 * flow.stdDevRoundTripTime);
+                        flow.timeoutLength = initTimeoutLength;
+
+
+
+                        while (flow.packets.peek().getID() < packetID) {
                             flow.sendTimes.remove(flow.packets.remove().getID());
+                        }
                     }
                     break;
                 }
                 // Otherwise the destination is still expecting the first
                 //  packet in the queue
-                else if (packetID.equals(nextPacketID)) {
+                else if (protocol == Main.Protocol.RENO && packetID.equals(nextPacketID)) {
                     writer.println("we gotta retransmit " + (flow.lastACKCount + 1) + " " + flow.mostRecentRetransmittedPacket);
                     // Increase the number of times the destination has reported
                     // a packet out of order
@@ -303,7 +312,7 @@ public class Host extends Node {
                         // 1 (since we just retransmitted a packet).
                         flow.windowOccupied = 1;
                         flow.mostRecentQueued = packet.getID();
-                        if (protocol == Main.Protocol.RENO && !flow.awaitingRetransmit) {
+                        if (!flow.awaitingRetransmit) {
                             // Enter FR/FR.
                             if (flow.windowSize / 2 < 2) {
                                 flow.ssthresh = 2;
