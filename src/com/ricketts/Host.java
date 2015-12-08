@@ -10,8 +10,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * A Host is a Node meant to simulate a source or sink of data. Hosts have only one Link. Flows begin at Hosts.
  */
 public class Host extends Node {
+
     private final static Integer initWindowSize = 1;
-    private final static Integer initTimeoutLength = 3000;
+    private final static Integer initTimeoutLength = 30000;
     private final static Double timeoutLengthCatchupFactor = 0.1;
     private final static Integer TCPFastUpdateInterval = 200;
     private final static Double TCPFastAlpha = 20.0;
@@ -36,6 +37,7 @@ public class Host extends Node {
     private HashMap<Host, LinkedList<Download>> downloadsBySource;
 
     private PrintWriter writer;
+    private PrintWriter writer2;
 
     /**
      * Protocol we're using
@@ -153,6 +155,7 @@ public class Host extends Node {
         this.protocol = protocol;
         try {
             this.writer = new PrintWriter("logging_file_" + address + ".txt", "UTF-8");
+            this.writer2 = new PrintWriter("logging_file_" + address + "2.txt", "UTF-8");
         } catch (Exception e) {
             System.out.println(e);
         }
@@ -224,10 +227,12 @@ public class Host extends Node {
                     Integer timeSinceLastTCPFastUpdate = Main.currentTime - flow.lastUpdate;
 
 
+                    writer2.println("correct ack received " + packetID);
                     writer.println("this is bs");
                     writer.println(packetID);
                     flow.windowOccupied--;
                     flow.mostRecentSent = packetID;
+                    flow.lastACKCount = 0;
                     if (protocol == Main.Protocol.RENO) {
                         if (flow.slowStart) {
                             // If we're in slow start & Reno, cwnd <- cwnd + 1
@@ -293,6 +298,7 @@ public class Host extends Node {
                 // Otherwise the destination is still expecting the first
                 //  packet in the queue
                 else if (protocol == Main.Protocol.RENO && packetID.equals(nextPacketID)) {
+                    writer2.println("incorrect packet received " + packetID);
                     writer.println("we gotta retransmit " + (flow.lastACKCount + 1) + " " + flow.mostRecentRetransmittedPacket);
                     // Increase the number of times the destination has reported
                     // a packet out of order
@@ -300,9 +306,10 @@ public class Host extends Node {
                     // If this packet has been ACKed three or more time, assume
                     // it's been dropped and retransmit (TCP FAST)
                     if (flow.lastACKCount >= 3 && flow.mostRecentRetransmittedPacket != packetID) {
+                        writer2.println("retransmitted " + packetID);
                         writer.println(flow.mostRecentRetransmittedPacket + " most recent");
                         flow.mostRecentRetransmittedPacket = packetID;
-                        writer.println("retransmitted pcket" + packetID);
+                        writer2.println("retransmitted pcket" + packetID + " " + flow.lastACKCount + " HI");
                         System.out.println("FAST RETRANSMIT");
                         DataPacket packet = flow.packets.peek();
                         flow.sendTimes.put(packet.getID(), Main.currentTime);
