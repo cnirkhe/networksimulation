@@ -7,6 +7,7 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYDotRenderer;
 import org.jfree.chart.renderer.xy.XYItemRenderer;
 import org.jfree.chart.renderer.xy.XYLine3DRenderer;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
@@ -62,6 +63,10 @@ public class OverlaidPlot extends ApplicationFrame
         );
 
         final XYPlot plot = chart.getXYPlot();
+        XYDotRenderer render = new XYDotRenderer();
+        render.setDotWidth(5);
+        render.setDotHeight(5);
+        plot.setRenderer(render);
         final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
         rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
         final NumberAxis domainAxis = (NumberAxis) plot.getDomainAxis();
