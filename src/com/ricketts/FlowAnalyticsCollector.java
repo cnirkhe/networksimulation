@@ -2,6 +2,7 @@ package com.ricketts;
 
 import com.sun.xml.internal.ws.api.streaming.XMLStreamReaderFactory;
 import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.xy.XYSeries;
 
 import java.util.ArrayList;
 
@@ -13,47 +14,44 @@ public class FlowAnalyticsCollector {
      * Flow rate, window size, and packet delay for analytics.
      * TODO: add in window size/packet delay when implemented
      */
-    private DefaultCategoryDataset flowRates;
-    private DefaultCategoryDataset windowSizes;
-    private DefaultCategoryDataset packetDelays;
+    private XYSeries flowRates;
+    private XYSeries windowSizes;
+    private XYSeries packetDelays;
     private int flowId;
     private String name;
 
     public FlowAnalyticsCollector(int flowId, String name) {
-        this.flowId = flowId;
-        this.flowRates = new DefaultCategoryDataset();
-        this.windowSizes = new DefaultCategoryDataset();
-        this.packetDelays = new DefaultCategoryDataset();
-        this.name = name;
+        this.flowRates = new XYSeries("Flow " + flowId);
+        this.windowSizes = new XYSeries("Flow " + flowId);
+        this.packetDelays = new XYSeries("Flow " + flowId);
     }
 
     /**
      *  Add a rate to flow rates.
      */
     public void addToFlowRates(double rate, int time) {
-        flowRates.addValue(rate, "Flow " + flowId, "" + time);
+        flowRates.add(time, rate);
     }
 
     /**
      * Add a window size to window sizes.
      */
     public void addToWindowSize(int size, int time) {
-        windowSizes.addValue(size, "Flow " + flowId, "" + time);
+        windowSizes.add(time, size);
     }
 
     /**
      * Add a packet delay to packet delays.
      */
     public void addToPacketDelay(double delay, int time) {
-        packetDelays.addValue(delay, "Flow " + flowId, "" + time);
+        packetDelays.add(time, delay);
     }
 
-    public void generateFlowGraphs() {
-        LineChart_AWT flowRateGraph = new LineChart_AWT("Flow Rates", "Flow Rates", "Flow Rate (Mbps)",
-                flowRates, "Flow " + flowId + " Rate " + name + ".png", 888, 888);
-        LineChart_AWT windowSizeGraph = new LineChart_AWT("Window Size", "Window Size", "Window Size (pkts)",
-                windowSizes, "Flow " + flowId + " Window Size " + name + ".png", 888, 888);
-        LineChart_AWT packetDelayGraph = new LineChart_AWT("Packet Delay", "Packet Delay", "Packets Delay (ms)",
-                packetDelays, "Flow " + flowId + " Packet Delay " + name + ".png", 888, 888);
+    public ArrayList<XYSeries> getDatasets() {
+        ArrayList<XYSeries> output = new ArrayList<>();
+        output.add(flowRates);
+        output.add(windowSizes);
+        output.add(packetDelays);
+        return output;
     }
 }

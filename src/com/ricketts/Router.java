@@ -61,6 +61,7 @@ public class Router extends Node
     public ArrayList<Link> getLinks() {
         return links;
     }
+    public HashMap<Node, Pair<Double, Link>> getCurrentRoutingTable() {return currentRoutingTable; }
 
     public void initializeRoutingTable() {
         nextRoutingTable = new HashMap<>();
@@ -88,10 +89,6 @@ public class Router extends Node
      * @param neighborRoutingTable and the routing table of the neighbor
      */
     private void updateRoutingTable(Link connectingLink, HashMap<Node,Pair<Double,Link>> neighborRoutingTable) {
-
-        //TODO Remove (placed for debug purposes only)
-        Node neighbor = connectingLink.getOtherEnd(this);
-
         for(Node node : neighborRoutingTable.keySet()) {
             Pair<Double, Link> neighborsKnowledge = neighborRoutingTable.get(node);
 
@@ -120,6 +117,7 @@ public class Router extends Node
             //Check the routing table for which link to send out these packets on
             Pair<Double, Link> bestPath = currentRoutingTable.get(destination);
             if (bestPath == null) {
+                System.out.println(Main.currentTime);
                 System.out.println("Destination unknown in routing table.");
             } else {
                 Link bestLink = bestPath.snd;
@@ -153,7 +151,7 @@ public class Router extends Node
             timeLeftInBroadcastPeriod -= intervalTime;
         }
 
-        if(timeLeftInUpdatePeriod < 0) {
+        if(timeLeftInUpdatePeriod <= 0) {
             timeLeftInUpdatePeriod = TABLE_UPDATE_PERIOD;
 
             //First we ensure that we have entries in every part of the newtable

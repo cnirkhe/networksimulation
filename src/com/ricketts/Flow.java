@@ -1,5 +1,8 @@
 package com.ricketts;
 
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.data.xy.XYSeries;
+
 import java.util.ArrayList;
 import java.util.LinkedList;
 
@@ -19,24 +22,30 @@ public class Flow {
      */
     private Integer dataSize;
 
+    private int protocol;
+
     /**
      * Measured in milliseconds. Denotes when relative to the global time this flow should initiate.
      */
     private Integer startTime;
 
     public Flow(Integer id, Host source, Host destination, Integer dataSize, Integer startTime,
-                String name) {
+                String name, int protocol) {
         this.id = id;
         this.source = source;
         this.destination = destination;
         this.dataSize = dataSize;
         this.startTime = startTime;
         this.flowAnalyticsCollector = new FlowAnalyticsCollector(this.id, name);
+        this.protocol = protocol;
     }
 
     public Host getSource() { return this.source; }
     public Host getDestination() { return this.destination; }
     public Integer getID() { return this.id; }
+    public Integer getStartTime() {
+        return startTime;
+    }
 
     /**
      * This method generates a LinkedList of DataPackets corresponding to the size of data of the flow.
@@ -69,7 +78,12 @@ public class Flow {
         return dataPackets;
     }
 
+    public ArrayList<XYSeries> getDatasets() {
+        return flowAnalyticsCollector.getDatasets();
+    }
+
+    /*
     public void generateFlowGraphs() {
         flowAnalyticsCollector.generateFlowGraphs();
-    }
+    }*/
 }
