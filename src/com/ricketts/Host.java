@@ -247,7 +247,7 @@ public class Host extends Node {
                     else {
                         while (flow.packets.peek().getID() < packetID) {
                             Integer newRoundTripTime =
-                                    RunSim.getCurrentTime() - flow.sendTimes.get(flow.packets.peek().getID());
+                                    Main.currentTime.intValue() - flow.sendTimes.get(flow.packets.peek().getID());
                             // update minRoundTripTime
                             flow.minRoundTripTime = Math.min(flow.minRoundTripTime, newRoundTripTime);
                             // update avgRoundTripTime
