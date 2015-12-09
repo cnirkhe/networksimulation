@@ -19,6 +19,7 @@ import java.util.Iterator;
 public class Main {
 
     public static int currentTime = 0;
+    public static final int intervalTime = 1;
 
     public static class Protocol {
         public static int RENO = 1;
@@ -29,12 +30,12 @@ public class Main {
     public static void main(String[] args) {
 
         String filename = new String("t2.json");
-        String f2 = filename.substring(0, filename.length() - 5);
+        String filenameSubstring = filename.substring(0, filename.length() - ".json".length());
         InputParser ip = new InputParser();
         ip.parseJSON(filename);
 
         //First we derive all the links
-        ArrayList<Link> links = ip.extractLinks(f2, protocol);
+        ArrayList<Link> links = ip.extractLinks(filenameSubstring, protocol);
         HashMap<Integer, Link> linkMap = InputParser.makeLinkMap(links);
 
         //But these links don't have their nodes linked
@@ -50,55 +51,47 @@ public class Main {
         HashMap<String, Node> addressBook = InputParser.makeNodeMap(nodes);
 
         // Make flows
-        ArrayList<Flow> flows = ip.extractFlows(addressBook, f2, protocol);
+        ArrayList<Flow> flows = ip.extractFlows(addressBook, filenameSubstring, protocol);
 
         // Add nodes to links
         InputParser.addNodesToLinks(nodes);
 
-        //After nodes are added to links, we can now setup routingtables
+        //After nodes are added to links, we can now setup routing tables
         //Have each router setup its routing table based on its neighbors
         for (Router router : routers) {
             router.initializeRoutingTable();
+        }
+
+        for(Flow flow : flows) {
+            flow.getSource().addFlow(flow);
         }
 
         ArrayList<Updatable> updatableLinkedList = new ArrayList<>();
         updatableLinkedList.addAll(nodes);
         updatableLinkedList.addAll(links);
 
-        Integer intervalStep = 5;
-
-        while (currentTime < 50000) {
-
-            Iterator<Flow> flowIterator = flows.iterator();
-            while(flowIterator.hasNext()) {
-                Flow flow = flowIterator.next();
-                if(flow.getStartTime().equals(currentTime)) {
-                    flow.getSource().addFlow(flow);
-                }
-            }
-
-            for(Updatable u : updatableLinkedList) {
-                u.update(intervalStep, currentTime);
-            }
-
-            currentTime += intervalStep;
-
+        //running of the simulation
+        for (; currentTime < ip.extractRuntime(); currentTime += intervalTime) {
+            System.out.println("Time is currently: " + currentTime);
             if(currentTime % 100 == 0)
-                System.out.println("pause");
-       }
+                System.out.println();
+            for(Updatable u : updatableLinkedList) {
+                u.update();
+            }
+        }
 
 
         // Get flow and link stats
-        ArrayList<XYSeries> leftBuffer = new ArrayList<>();
-        ArrayList<XYSeries> rightBuffer = new ArrayList<>();
+        ArrayList<XYSeries> buffer = new ArrayList<>();
         ArrayList<XYSeries> packetLoss = new ArrayList<>();
         ArrayList<XYSeries> linkRates = new ArrayList<>();
         for (Link l : links) {
-            ArrayList<XYSeries> curr = l.getDatasets();
-            leftBuffer.add(curr.get(0));
-            rightBuffer.add(curr.get(1));
-            packetLoss.add(curr.get(2));
-            linkRates.add(curr.get(3));
+            if (l.graph) {
+                ArrayList<XYSeries> curr = l.getDatasets();
+                buffer.add(curr.get(0));
+                packetLoss.add(curr.get(1));
+                linkRates.add(curr.get(2));
+            }
         }
         ArrayList<XYSeries> flowRates = new ArrayList<>();
         ArrayList<XYSeries> windowSizes = new ArrayList<>();
@@ -111,19 +104,17 @@ public class Main {
             packetDelay.add(curr.get(2));
         }
 
-        OverlaidPlot op1 = new OverlaidPlot("Left Buffer", "Left Buffer Occupancy " + f2 + ".png", leftBuffer,
-                "Time (ms)", "Buffer occupancy (pkts)", 888, 888);
-        OverlaidPlot op2 = new OverlaidPlot("Right Buffer", "Right Buffer Occupancy " + f2 + ".png", rightBuffer,
-                "Time (ms)", "Buffer occupancy (pkts)", 888, 888);
-        OverlaidPlot op3 = new OverlaidPlot("Packet Loss", "Packet Loss " + f2 + ".png", packetLoss,
-                "Time (ms)", "Packet Loss (pkts)", 888, 888);
-        OverlaidPlot op4 = new OverlaidPlot("Link Rates", "Link Rates " + f2 + ".png", linkRates,
-                "Time (ms)", "Link Rate (Mbps)", 888, 888);
-        OverlaidPlot op5 = new OverlaidPlot("Flow Rate", "Flow Rate " + f2 + ".png", flowRates,
-                "Time (ms)", "Flow Rate (Mbps)", 888, 888);
-        OverlaidPlot op6 = new OverlaidPlot("Window Size", "Window Size " + f2 + ".png", windowSizes,
-                "Time (ms)", "Window Size (pkts)", 888, 888);
-        OverlaidPlot op7 = new OverlaidPlot("Packet delay", "Packet Delay " + f2 + ".png", packetDelay,
-                "Time (ms)", "Packet Delay (ms)", 888, 888);
+        OverlaidPlot op1 = new OverlaidPlot("Buffer", "graphs/Buffer Occupancy " + filenameSubstring + ".png", buffer,
+                "Time (ms)", "Buffer occupancy (bits)", 888, 188);
+        OverlaidPlot op3 = new OverlaidPlot("Packet Loss", "graphs/Packet Loss " + filenameSubstring + ".png", packetLoss,
+                "Time (ms)", "Packet Loss (pkts)", 888, 188);
+        OverlaidPlot op4 = new OverlaidPlot("Link Rates", "graphs/Link Rates " + filenameSubstring + ".png", linkRates,
+                "Time (ms)", "Link Rate (Mbps)", 888, 188);
+        OverlaidPlot op5 = new OverlaidPlot("Flow Rate", "graphs/Flow Rate " + filenameSubstring + ".png", flowRates,
+                "Time (ms)", "Flow Rate (Mbps)", 888, 188);
+        OverlaidPlot op6 = new OverlaidPlot("Window Size", "graphs/Window Size " + filenameSubstring + ".png", windowSizes,
+                "Time (ms)", "Window Size (pkts)", 888, 188);
+        OverlaidPlot op7 = new OverlaidPlot("Packet delay", "graphs/Packet Delay " + filenameSubstring + ".png", packetDelay,
+                "Time (ms)", "Packet Delay (ms)", 888, 188);
     }
 }

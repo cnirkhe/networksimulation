@@ -120,6 +120,15 @@ public class InputParser {
         return output;
     }
 
+    public int extractRuntime() {
+        try {
+            return jsonObject.getJSONObject("network").getInt("runtime");
+        } catch (JSONException e) {
+            System.out.println(e);
+        }
+        return -1;
+    }
+
     /**
      * Using the JSON definition, produce ArrayList of Links
      * @return ArrayList of Links
@@ -131,11 +140,12 @@ public class InputParser {
             for (int i = 0; i < linkArray.length(); ++i) {
                 JSONObject linkJson = linkArray.getJSONObject(i);
                 int id = linkJson.getInt("id");
-                int capacity = linkJson.getInt("capacity");
+                int capacity = (int) (linkJson.getDouble("capacity") * 1048.576);
                 int transmissionDelay = linkJson.getInt("transmissionDelay");
-                int buffer = linkJson.getInt("bufferSize");
+                int buffer = linkJson.getInt("bufferSize") * 8192;
+                boolean graph = linkJson.getBoolean("graph");
                 // add in left node and right node
-                output.add(new Link(id, capacity, transmissionDelay, buffer, filename, protocol));
+                output.add(new Link(id, capacity, transmissionDelay, buffer, filename, graph));
             }
         } catch (JSONException e) {
             System.out.println(e);
@@ -157,7 +167,7 @@ public class InputParser {
                 Host source = (Host) addressBook.get(sourceId);
                 String destinationId = flowJson.getString("destination");
                 Host destination = (Host) addressBook.get(destinationId);
-                int dataAmount = flowJson.getInt("dataAmount");
+                int dataAmount = flowJson.getInt("dataAmount") * 8388608;
                 int startTime = flowJson.getInt("startTime");
                 output.add(new Flow(id, source, destination, dataAmount, startTime, filename, protocol));
             }

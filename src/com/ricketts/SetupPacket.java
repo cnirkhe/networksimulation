@@ -1,7 +1,7 @@
 package com.ricketts;
 
 public class SetupPacket extends Packet {
-    private static final Integer SetupPacketSize = 64;
+    private static final Integer SetupPacketSize = 8 * 64;
 
     private Integer maxPacketID;
 

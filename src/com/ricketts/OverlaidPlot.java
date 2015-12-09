@@ -64,8 +64,8 @@ public class OverlaidPlot extends ApplicationFrame
 
         final XYPlot plot = chart.getXYPlot();
         XYDotRenderer render = new XYDotRenderer();
-        render.setDotWidth(1);
-        render.setDotHeight(1);
+        render.setDotWidth(5);
+        render.setDotHeight(5);
         //plot.setRenderer(render);
         final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
         rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());

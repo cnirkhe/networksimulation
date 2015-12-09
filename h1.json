@@ -19,5 +19,6 @@
   ],
   "flows" : [
     {"id": 1, "source": "h0", "destination": "h1", "dataAmount": 20, "startTime": 500}
-  ]
+  ],
+  "runtime" : 25000
 }}
