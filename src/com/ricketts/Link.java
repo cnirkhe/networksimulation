@@ -344,9 +344,7 @@ public class Link implements Updatable {
         // Want rates per second
         sumBufferCapacity += linkBuffer - leftBufferRemainingCapacity;
         sumTotalBitsTransmitted += totalBitsTransmitted;
-        if (packetDrops > 0 && (linkID == 1 || linkID == 2)) {
-            linkAnalyticsCollector.addToPacketLoss(packetDrops, Main.currentTime);
-        }
+        linkAnalyticsCollector.addToPacketLoss(packetDrops, Main.currentTime);
         // Want link rates in Mbps
         if (Main.currentTime % 100 == 0) {
              linkAnalyticsCollector.addToBuffer(sumBufferCapacity / (100 / Main.intervalTime)

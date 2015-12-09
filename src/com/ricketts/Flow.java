@@ -48,6 +48,8 @@ public class Flow {
      */
     public Integer totalRoundTripTime;
     public Integer numRtts;
+    public Integer minRoundTripTime;
+    public Double avgRoundTripTime;
 
     /**
      * Bits sent within this update session
@@ -97,6 +99,8 @@ public class Flow {
         this.sendTimes = new HashMap<>();
         this.totalRoundTripTime = 0;
         this.numRtts = 0;
+        this.minRoundTripTime = Integer.MAX_VALUE;
+        this.avgRoundTripTime = null;
         this.currBitsSent = 0;
         this.partialWindowSize = 0;
         this.slowStart = true;

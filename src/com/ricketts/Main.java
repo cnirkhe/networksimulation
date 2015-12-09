@@ -25,7 +25,7 @@ public class Main {
         public static int RENO = 1;
         public static int FAST = 2;
     }
-    public static int protocol = Protocol.RENO;
+    public static int protocol = Protocol.FAST;
 
     public static void main(String[] args) {
 

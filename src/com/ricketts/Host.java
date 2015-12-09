@@ -1,5 +1,8 @@
 package com.ricketts;
 
+import com.sun.tools.doclets.internal.toolkit.util.DocFinder;
+import com.sun.tools.javac.code.Type;
+
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Set;
@@ -9,7 +12,9 @@ import java.util.Set;
  */
 public class Host extends Node {
 
-    public final static Double timeoutLengthCatchupFactor = 0.1;
+    private final static Integer TCPFastUpdateInterval = 100;
+    private final static Double TCPFastAlpha = 20.0;
+    private final static Double timeoutLengthCatchupFactor = .1;
 
     private Link link;
 
@@ -128,8 +133,19 @@ public class Host extends Node {
                     for(int i = flow.firstNotRecievedPacketIndex; i < ackPacketID; ++i) {
                         // flow.sendTimes.get(i) will be null if we clear all the send times in a rto.
                         if(flow.sendTimes.get(i) != null) {
-                            flow.flowAnalyticsCollector.addToPacketDelay(flow.totalRoundTripTime / flow.numRtts, Main.currentTime);
-                            flow.totalRoundTripTime += Main.currentTime - flow.sendTimes.get(i);
+                            Integer rtt = Main.currentTime - flow.sendTimes.get(i);
+                            flow.flowAnalyticsCollector.addToPacketDelay(rtt, Main.currentTime);
+                            flow.totalRoundTripTime += rtt;
+                            if (rtt < flow.minRoundTripTime) {
+                                flow.minRoundTripTime = rtt;
+                            }
+                            // update avgRoundTripTime
+                            if (flow.avgRoundTripTime == null) {
+                                flow.avgRoundTripTime = rtt * 1.0;
+                            } else {
+                                flow.avgRoundTripTime = flow.avgRoundTripTime * (1 - timeoutLengthCatchupFactor)
+                                        + rtt * timeoutLengthCatchupFactor;
+                            }
                             flow.numRtts++;
                             flow.sendTimes.remove(i);
                         }
@@ -321,6 +337,13 @@ public class Host extends Node {
                         }
                     }
                 }
+                // Update FastTCP window size
+                if (protocol == Main.Protocol.FAST && flow.minRoundTripTime < Integer.MAX_VALUE
+                        && flow.activated && Main.currentTime % TCPFastUpdateInterval == 0) {
+                    flow.windowSize = (int) (timeoutLengthCatchupFactor * ((flow.windowSize * (flow.minRoundTripTime /
+                            flow.avgRoundTripTime)) + TCPFastAlpha)
+                            + (1.0 - timeoutLengthCatchupFactor) * flow.windowSize);
+                }
                 // Handle RTT divide by 0 error
                 if (flow.numRtts == 0) {
                     flow.numRtts = 1;
@@ -328,13 +351,17 @@ public class Host extends Node {
                 // Update RTO threshold to be 3 * average RTT
                 //flow.timeoutLength = 3 * flow.totalRoundTripTime / flow.numRtts;
                 flow.totalBitsSent += flow.currBitsSent;
-                flow.flowAnalyticsCollector.addToWindowSize(flow.windowSize, Main.currentTime);
+                if (flow.windowSize < 200 && flow.windowSize > 0) {
+                    flow.flowAnalyticsCollector.addToWindowSize(flow.windowSize, Main.currentTime);
+                }
                 // Average the flow rate over an interval of 100 ms
                 if (Main.currentTime % 100 == 0) {
                     flow.flowAnalyticsCollector.addToFlowRates((double) flow.totalBitsSent / (100 / Main.intervalTime)
                             * Main.intervalTime / 1048.576, Main.currentTime);
                     flow.totalBitsSent = 0;
                 }
+                flow.totalRoundTripTime = 0;
+                flow.numRtts = 0;
             }
         }
     }
