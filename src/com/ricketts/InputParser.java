@@ -120,6 +120,15 @@ public class InputParser {
         return output;
     }
 
+    public int extractRuntime() {
+        try {
+            return jsonObject.getJSONObject("network").getInt("runtime");
+        } catch (JSONException e) {
+            System.out.println(e);
+        }
+        return -1;
+    }
+
     /**
      * Using the JSON definition, produce ArrayList of Links
      * @return ArrayList of Links

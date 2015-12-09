@@ -9,5 +9,6 @@
     ],
     "flows" : [
         {"id": 1, "source": "h1", "destination": "h2", "dataAmount": 20, "startTime": 1}
-    ]
+    ],
+    "runtime" : 10000
 }}

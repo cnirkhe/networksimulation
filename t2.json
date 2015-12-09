@@ -28,5 +28,6 @@
         {"address": "r2", "links": [1,2,6]},
         {"address": "r3", "links": [2,3,7]},
         {"address": "r4", "links": [3,8,9]}
-    ]
+    ],
+    "runtime" : 50000
 }}
