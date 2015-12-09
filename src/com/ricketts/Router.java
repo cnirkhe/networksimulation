@@ -127,12 +127,7 @@ public class Router extends Node
      */
     public void update() {
 
-        if((routingTablesConverged && Main.currentTime % 5000 == 4000) ||
-                (!routingTablesConverged && Main.currentTime % 100 == 0)) {
-            initializeRoutingTable();
-        }
-
-        if((routingTablesConverged && Main.currentTime % 5000 >= 4000 && Main.currentTime % 100 == 0) ||
+        if((routingTablesConverged && Main.currentTime % 3200 == 0) ||
                 (!routingTablesConverged && Main.currentTime % 100 == 0)) {
             for(Link link : links) {
                 Node otherEnd = link.getOtherEnd(this);
@@ -177,6 +172,7 @@ public class Router extends Node
             }
 
             currentRoutingTable = nextRoutingTable;
+            initializeRoutingTable();
         }
 
 

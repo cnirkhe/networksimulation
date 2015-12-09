@@ -239,7 +239,7 @@ public class Link implements Updatable {
     public void update() {
 
         //Buffer Estimate
-        if(Main.currentTime % 100 == 0) {
+        if(Main.currentTime % 300 == 0) {
 
             if(numbLeftPktsThruBuffer == 0)
                 latestLeftBufferDelayEstimate = 0.0;
