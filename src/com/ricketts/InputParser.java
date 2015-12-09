@@ -8,7 +8,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 
 /**
  * The InputParser is used to read the JSON definition for the parameters of the project and convert it to objects.
@@ -169,7 +168,7 @@ public class InputParser {
                 Host destination = (Host) addressBook.get(destinationId);
                 int dataAmount = flowJson.getInt("dataAmount") * 8388608;
                 int startTime = flowJson.getInt("startTime");
-                output.add(new Flow(id, source, destination, dataAmount, startTime, filename, protocol));
+                output.add(new Flow(id, source, destination, dataAmount, startTime, protocol));
             }
         } catch (JSONException e) {
             System.out.println(e);

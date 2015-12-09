@@ -112,7 +112,7 @@ public class Link implements Updatable {
         this.rightBufferRemainingCapacity = linkBuffer;
         this.packetDrops = 0;
         this.totalBitsTransmitted = 0;
-        this.linkAnalyticsCollector = new LinkAnalyticsCollector(linkID, name);
+        this.linkAnalyticsCollector = new LinkAnalyticsCollector(linkID);
         this.sumBufferCapacity = 0;
         this.sumTotalBitsTransmitted = 0;
         this.graph = graph;

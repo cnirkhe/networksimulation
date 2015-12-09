@@ -4,15 +4,8 @@ import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartUtilities;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.axis.NumberAxis;
-import org.jfree.chart.plot.Plot;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
-import org.jfree.chart.renderer.xy.XYDotRenderer;
-import org.jfree.chart.renderer.xy.XYItemRenderer;
-import org.jfree.chart.renderer.xy.XYLine3DRenderer;
-import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
-import org.jfree.data.category.DefaultCategoryDataset;
-import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYDataset;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
@@ -23,10 +16,20 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 /**
- * Created by Elaine on 12/7/2015.
+ * Utilities for creating a line plot of multiple series and save as JPEG.
  */
 public class OverlaidPlot extends ApplicationFrame
 {
+    /**
+     * Create a lineplot of the specified dataset and save as a .jpeg.
+     * @param title Plot title
+     * @param filename Output filename the plot is saved as
+     * @param series List of data series to plot
+     * @param xAxis X axis title
+     * @param yAxis Y axis title
+     * @param width Plot width (pixels0
+     * @param height Plot height (pixels)
+     */
     public OverlaidPlot(final String title, final String filename, ArrayList<XYSeries> series,
                         final String xAxis, final String yAxis, int width, int height) {
         super(title);
@@ -41,6 +44,11 @@ public class OverlaidPlot extends ApplicationFrame
         }
     }
 
+    /**
+     * Create a dataset given a list of series.
+     * @param series The list of XYSeries we collected
+     * @return A XYSeriesCollection consisting of all the input series
+     */
     private XYSeriesCollection createDataset(ArrayList<XYSeries> series) {
         final XYSeriesCollection dataset = new XYSeriesCollection();
         for (XYSeries s : series) {
@@ -49,6 +57,14 @@ public class OverlaidPlot extends ApplicationFrame
         return dataset;
     }
 
+    /**
+     * Create a JFreeChart given a dataset.
+     * @param dataset The collection of series we want to graph.
+     * @param title Chart title
+     * @param xAxis X axis title
+     * @param yAxis Y axis title
+     * @return A JFreeChart object representing the output graph
+     */
     private JFreeChart createChart(final XYDataset dataset, final String title, final String xAxis,
                                    final String yAxis) {
         final JFreeChart chart = ChartFactory.createXYLineChart(
@@ -63,10 +79,7 @@ public class OverlaidPlot extends ApplicationFrame
         );
 
         final XYPlot plot = chart.getXYPlot();
-        XYDotRenderer render = new XYDotRenderer();
-        render.setDotWidth(5);
-        render.setDotHeight(5);
-        //plot.setRenderer(render);
+        // Make integer ticks for both x and y axes.
         final NumberAxis rangeAxis = (NumberAxis) plot.getRangeAxis();
         rangeAxis.setStandardTickUnits(NumberAxis.createIntegerTickUnits());
         final NumberAxis domainAxis = (NumberAxis) plot.getDomainAxis();
@@ -74,6 +87,4 @@ public class OverlaidPlot extends ApplicationFrame
 
         return chart;
     }
-
-
 }
