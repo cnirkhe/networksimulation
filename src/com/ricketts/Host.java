@@ -13,8 +13,8 @@ import java.util.Set;
 public class Host extends Node {
 
     private final static Integer TCPFastUpdateInterval = 100;
-    private final static Double TCPFastAlpha = 20.0;
-    private final static Double timeoutLengthCatchupFactor = .1;
+    private final static Double TCPFastAlpha = 40.0;
+    private final static Double catchupFactor = .1;
 
     private Link link;
 
@@ -143,8 +143,8 @@ public class Host extends Node {
                             if (flow.avgRoundTripTime == null) {
                                 flow.avgRoundTripTime = rtt * 1.0;
                             } else {
-                                flow.avgRoundTripTime = flow.avgRoundTripTime * (1 - timeoutLengthCatchupFactor)
-                                        + rtt * timeoutLengthCatchupFactor;
+                                flow.avgRoundTripTime = flow.avgRoundTripTime * (1 - catchupFactor)
+                                        + rtt * catchupFactor;
                             }
                             flow.numRtts++;
                             flow.sendTimes.remove(i);
@@ -340,9 +340,19 @@ public class Host extends Node {
                 // Update FastTCP window size
                 if (protocol == Main.Protocol.FAST && flow.minRoundTripTime < Integer.MAX_VALUE
                         && flow.activated && Main.currentTime % TCPFastUpdateInterval == 0) {
-                    flow.windowSize = (int) (timeoutLengthCatchupFactor * ((flow.windowSize * (flow.minRoundTripTime /
-                            flow.avgRoundTripTime)) + TCPFastAlpha)
-                            + (1.0 - timeoutLengthCatchupFactor) * flow.windowSize);
+                    // if avgRTT is null no ACK was acknowledged so force window size down
+                    if (flow.avgRoundTripTime == null) {
+                        flow.windowSize = (int) (flow.windowSize / 1.05);
+                    } else {
+                        // update window size using the avgRTT
+                        flow.windowSize = (int) (catchupFactor * ((flow.windowSize * (flow.minRoundTripTime /
+                                flow.avgRoundTripTime)) + TCPFastAlpha)
+                                + (1.0 - catchupFactor) * flow.windowSize);
+
+                        // reset avgRTT since we want to react to average RTTs in small portions to avoid sluggish
+                        // response
+                        flow.avgRoundTripTime = null;
+                    }
                 }
                 // Handle RTT divide by 0 error
                 if (flow.numRtts == 0) {

@@ -29,7 +29,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String filename = new String("t2.json");
+        String filename = new String("h0.json");
         String filenameSubstring = filename.substring(0, filename.length() - ".json".length());
         InputParser ip = new InputParser();
         ip.parseJSON(filename);
