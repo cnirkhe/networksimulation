@@ -10,14 +10,14 @@
     {"address": "r4", "links": [3, 4, 5]}
   ],
   "links" : [
-    {"id": 0, "capacity": 12500000, "transmissionDelay": 10, "bufferSize": 64000},
-    {"id": 1, "capacity": 10000000, "transmissionDelay": 10, "bufferSize": 64000},
-    {"id": 2, "capacity": 10000000, "transmissionDelay": 10, "bufferSize": 64000},
-    {"id": 3, "capacity": 10000000, "transmissionDelay": 10, "bufferSize": 64000},
-    {"id": 4, "capacity": 10000000, "transmissionDelay": 10, "bufferSize": 64000},
-    {"id": 5, "capacity": 12500000, "transmissionDelay": 10, "bufferSize": 64000}
+    {"id": 0, "capacity": 12.5, "transmissionDelay": 10, "bufferSize": 64, "graph": false},
+    {"id": 1, "capacity": 10, "transmissionDelay": 10, "bufferSize": 64, "graph": true},
+    {"id": 2, "capacity": 10, "transmissionDelay": 10, "bufferSize": 64, "graph": true},
+    {"id": 3, "capacity": 10, "transmissionDelay": 10, "bufferSize": 64, "graph": false},
+    {"id": 4, "capacity": 10, "transmissionDelay": 10, "bufferSize": 64, "graph": false},
+    {"id": 5, "capacity": 12.5, "transmissionDelay": 10, "bufferSize": 64, "graph": false}
   ],
   "flows" : [
-    {"id": 1, "source": "h0", "destination": "h1", "dataAmount": 20000000, "startTime": 500}
+    {"id": 1, "source": "h0", "destination": "h1", "dataAmount": 20, "startTime": 500}
   ]
 }}
