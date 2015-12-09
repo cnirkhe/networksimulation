@@ -7,25 +7,47 @@ import java.util.*;
 /**
  * Flows are used to describe a desire to move Data from one Host to another.
  * They describe how much data is going to be moved, and also provide the logistics for
- * generating the necessary packets.
+ * generating the necessary packets. As well as containing the necessary data about the flow for calculations.
  */
 public class Flow {
 
+    /**
+     * The Starting Window Size and what we drop to at an RTO
+     */
     public final static Integer initWindowSize = 1;
-    public final static Integer initTimeoutLength = 600;
+    /**
+     * Set timeout Length
+     */
+    public final static Integer timeoutLength = 600;
 
+    /**
+     * Current Window Size
+     */
     public Integer windowSize;
-    public Integer timeoutLength;
-    // In Reno CA phase, every ACK increases cwnd by 1/cwnd. We're keeping
-    // track of these partial windows added and then adding 1 to windowSize once
-    // once partialWindowSize == windowSize.
+
+    /**
+     * In reality the window size = W + n/W where n is an integer < W. This is that n
+     * We keep track of it because with incremental change n-> W then W -> W+1.
+     *
+     * This is used in Reno Congestion Avoidance phase when each ACK increases cwnd by 1 / cwnd
+     */
     public Integer partialWindowSize;
+
+    /**
+     * The ID of the last packet to be sent
+     */
     public Integer maxPacketID;
-    // Indicates whether or not we're in the slow start phase.
+    /**
+     * Indicates whether or not we're in the slow start phase.
+     */
     public boolean slowStart;
-    // Indicates whether or not we're waiting for a retransmit.
+    /**
+     * Indicates whether or not we're waiting for a retransmit.
+     */
     public boolean awaitingRetransmit;
-    // Slow start threshhold
+    /**
+     * Slow start threshold
+     */
     public int ssthresh;
     /**
      * Monotonically increasing count of last ACK received
@@ -92,7 +114,6 @@ public class Flow {
     public void activateFlow() {
         this.activated = true;
         this.windowSize = initWindowSize;
-        this.timeoutLength = initTimeoutLength;
         this.packets = generateDataPackets(0);
         this.maxPacketID = packets.size() - 1;
         this.numberOfLatestACKIDRecieved = 0;
