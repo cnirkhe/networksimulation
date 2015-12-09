@@ -137,9 +137,9 @@ public class Link implements Updatable {
     }
     private Double getBufferDelay(Node node) {
         if(node == leftNode) {
-            return getBufferDelay(Direction.RIGHT);
-        } else if (node == rightNode) {
             return getBufferDelay(Direction.LEFT);
+        } else if (node == rightNode) {
+            return getBufferDelay(Direction.RIGHT);
         } else
             return 0.0;
     }
@@ -270,45 +270,62 @@ public class Link implements Updatable {
 
         Integer bitsAddedToLink = 0;
         Integer bitsAddableToLink = Main.intervalTime * this.linkRate;
-        while (bitsAddableToLink - bitsAddedToLink > 0) {
-            // If there's no packet being currently transmitted, fetch one from
-            // the left or right buffer. Preference is given to whichever buffer
-            // has the packet at the front of its queue that's been waiting
-            // longer.
-            TransmittingPacket transmittingPacket = null;
-            Direction transmittingDirection = null;
-            TransmittingPacket leftPacket = this.leftPacketBuffer.peek();
-            TransmittingPacket rightPacket = this.rightPacketBuffer.peek();
-            if (leftPacket == null && rightPacket == null) {
-                    break;
-            } else if(leftPacket == null && rightPacket.packet.getSize() <= bitsAddableToLink - bitsAddedToLink) {
-                transmittingPacket = rightPacketBuffer.remove();
-                transmittingDirection = Direction.LEFT;
-            } else if ( (rightPacket == null || leftPacket.transmissionStartTime < rightPacket.transmissionStartTime) &&
-                    leftPacket.packet.getSize() <= bitsAddableToLink - bitsAddedToLink) {
-                transmittingPacket = leftPacketBuffer.remove();
-                transmittingDirection = Direction.RIGHT;
-            } else if (rightPacket != null && rightPacket.packet.getSize() <= bitsAddableToLink - bitsAddedToLink) {
-                transmittingPacket = rightPacketBuffer.remove();
-                transmittingDirection = Direction.LEFT;
-            } else {
-                break;
-            }
-
-            if(transmittingPacket != null) {
+        boolean transmitPackets = true;
+        while(transmitPackets && !this.leftPacketBuffer.isEmpty() && !this.rightPacketBuffer.isEmpty()) {
+            if(leftPacketBuffer.peek().transmissionStartTime <= rightPacketBuffer.peek().transmissionStartTime &&
+                    leftPacketBuffer.peek().packet.getSize() <= bitsAddableToLink - bitsAddedToLink) {
+                //Remove leftpacket and put onto transmitting
+                TransmittingPacket transmittingPacket = leftPacketBuffer.remove();
+                sumLeftBufferTime += Main.currentTime - transmittingPacket.transmissionStartTime;
+                numbLeftPktsThruBuffer++;
+                this.leftBufferRemainingCapacity += transmittingPacket.packet.getSize();
                 currentlyTransmittingPackets.add(transmittingPacket);
-                if(transmittingDirection == Direction.RIGHT) {
-                    sumLeftBufferTime += Main.currentTime - transmittingPacket.transmissionStartTime;
-                    numbLeftPktsThruBuffer++;
-                    this.leftBufferRemainingCapacity += transmittingPacket.packet.getSize();
-                } else {
-                    sumRightBufferTime += Main.currentTime - transmittingPacket.transmissionStartTime;
-                    numbLeftPktsThruBuffer++;
-                    this.rightBufferRemainingCapacity += transmittingPacket.packet.getSize();
-                }
-                System.out.println("Packet " + transmittingPacket.packet.getID() + " traveling " + transmittingDirection + " entered link at time " + Main.currentTime);
                 bitsAddedToLink += transmittingPacket.packet.getSize();
                 transmittingPacket.transmissionStartTime = Main.currentTime;
+            } else if(leftPacketBuffer.peek().transmissionStartTime > rightPacketBuffer.peek().transmissionStartTime &&
+                    rightPacketBuffer.peek().packet.getSize() <= bitsAddableToLink - bitsAddedToLink){
+                //Remove rightpacket and put onto transmitting
+                TransmittingPacket transmittingPacket = rightPacketBuffer.remove();
+                sumRightBufferTime += Main.currentTime - transmittingPacket.transmissionStartTime;
+                numbRightPktsThruBuffer++;
+                this.rightBufferRemainingCapacity += transmittingPacket.packet.getSize();
+                currentlyTransmittingPackets.add(transmittingPacket);
+                bitsAddedToLink += transmittingPacket.packet.getSize();
+                transmittingPacket.transmissionStartTime = Main.currentTime;
+            } else {
+                //Move neither
+                transmitPackets = false;
+            }
+        }
+
+        while(transmitPackets && !leftPacketBuffer.isEmpty()) {
+            if(leftPacketBuffer.peek().packet.getSize() <= bitsAddableToLink - bitsAddedToLink) {
+                //Remove leftpacket and put onto transmitting
+                TransmittingPacket transmittingPacket = leftPacketBuffer.remove();
+                sumLeftBufferTime += Main.currentTime - transmittingPacket.transmissionStartTime;
+                numbLeftPktsThruBuffer++;
+                this.leftBufferRemainingCapacity += transmittingPacket.packet.getSize();
+                currentlyTransmittingPackets.add(transmittingPacket);
+                bitsAddedToLink += transmittingPacket.packet.getSize();
+                transmittingPacket.transmissionStartTime = Main.currentTime;
+            } else {
+                //Don't move
+                transmitPackets = false;
+            }
+        }
+
+        while(transmitPackets && !rightPacketBuffer.isEmpty()) {
+            if(rightPacketBuffer.peek().packet.getSize() <= bitsAddableToLink - bitsAddedToLink) {
+                TransmittingPacket transmittingPacket = rightPacketBuffer.remove();
+                sumRightBufferTime += Main.currentTime - transmittingPacket.transmissionStartTime;
+                numbRightPktsThruBuffer++;
+                this.rightBufferRemainingCapacity += transmittingPacket.packet.getSize();
+                currentlyTransmittingPackets.add(transmittingPacket);
+                bitsAddedToLink += transmittingPacket.packet.getSize();
+                transmittingPacket.transmissionStartTime = Main.currentTime;
+            } else {
+                //Don't move
+                transmitPackets = false;
             }
         }
 
