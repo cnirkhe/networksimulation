@@ -29,7 +29,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String filename = new String("h0.json");
+        String filename = new String("h1.json");
         String filenameSubstring = filename.substring(0, filename.length() - ".json".length());
         InputParser ip = new InputParser();
         ip.parseJSON(filename);
@@ -73,6 +73,8 @@ public class Main {
         //running of the simulation
         for (; currentTime < 30000; currentTime += intervalTime) {
             System.out.println("Time is currently: " + currentTime);
+            if(currentTime % 100 == 0)
+                System.out.println();
             for(Updatable u : updatableLinkedList) {
                 u.update();
             }

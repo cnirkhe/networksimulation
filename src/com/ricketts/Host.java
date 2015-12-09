@@ -174,12 +174,8 @@ public class Host extends Node {
                     flow.mostRecentQueued = packet.getID();
                     if (protocol == Main.Protocol.RENO && !flow.awaitingRetransmit) {
                         // Enter FR/FR.
-                        if (flow.windowSize / 2 < 2) {
-                            flow.ssthresh = 2;
-                        }
-                        else {
-                            flow.ssthresh = flow.windowSize / 2;
-                        }
+                        flow.ssthresh = Math.max(2, flow.windowSize/2);
+
                         // Wait for packet retransmit, at that point we will deflate the
                         // window.
                         flow.awaitingRetransmit = true;
