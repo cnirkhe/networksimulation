@@ -8,20 +8,20 @@
         {"address": "t3", "link": 9}
         ],
     "links" : [
-        {"id": 1, "capacity": 10000000, "transmissionDelay": 10, "bufferSize": 128000, "graph": true},
-        {"id": 2, "capacity": 10000000, "transmissionDelay": 10, "bufferSize": 128000, "graph": true},
-        {"id": 3, "capacity": 10000000, "transmissionDelay": 10, "bufferSize": 128000, "graph": true},
-        {"id": 4, "capacity": 12500000, "transmissionDelay": 10, "bufferSize": 128000, "graph": false},
-        {"id": 5, "capacity": 12500000, "transmissionDelay": 10, "bufferSize": 128000, "graph": false},
-        {"id": 6, "capacity": 12500000, "transmissionDelay": 10, "bufferSize": 128000, "graph": false},
-        {"id": 7, "capacity": 12500000, "transmissionDelay": 10, "bufferSize": 128000, "graph": false},
-        {"id": 8, "capacity": 12500000, "transmissionDelay": 10, "bufferSize": 128000, "graph": false},
-        {"id": 9, "capacity": 12500000, "transmissionDelay": 10, "bufferSize": 128000, "graph": false}
+        {"id": 1, "capacity": 10, "transmissionDelay": 10, "bufferSize": 128, "graph": true},
+        {"id": 2, "capacity": 10, "transmissionDelay": 10, "bufferSize": 128, "graph": true},
+        {"id": 3, "capacity": 10, "transmissionDelay": 10, "bufferSize": 128, "graph": true},
+        {"id": 4, "capacity": 12.5, "transmissionDelay": 10, "bufferSize": 128, "graph": false},
+        {"id": 5, "capacity": 12.5, "transmissionDelay": 10, "bufferSize": 128, "graph": false},
+        {"id": 6, "capacity": 12.5, "transmissionDelay": 10, "bufferSize": 128, "graph": false},
+        {"id": 7, "capacity": 12.5, "transmissionDelay": 10, "bufferSize": 128, "graph": false},
+        {"id": 8, "capacity": 12.5, "transmissionDelay": 10, "bufferSize": 128, "graph": false},
+        {"id": 9, "capacity": 12.5, "transmissionDelay": 10, "bufferSize": 128, "graph": false}
         ],
     "flows" : [
-        {"id": 1, "source": "s1", "destination": "t1", "dataAmount": 35000000, "startTime": 500},
-        {"id": 2, "source": "s2", "destination": "t2", "dataAmount": 15000000, "startTime": 10000},
-        {"id": 3, "source": "s3", "destination": "t3", "dataAmount": 30000000, "startTime": 20000}
+        {"id": 1, "source": "s1", "destination": "t1", "dataAmount": 35, "startTime": 500},
+        {"id": 2, "source": "s2", "destination": "t2", "dataAmount": 15, "startTime": 10000},
+        {"id": 3, "source": "s3", "destination": "t3", "dataAmount": 30, "startTime": 20000}
         ],
     "routers": [
         {"address": "r1", "links": [1,4,5]},

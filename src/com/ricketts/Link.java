@@ -184,6 +184,7 @@ public class Link implements Updatable {
         if (sendingNode == leftNode) {
             // Check if it fits in the buffer
             newRemainingCapacity = leftBufferRemainingCapacity - packet.getSize();
+            System.out.println(newRemainingCapacity);
             if (newRemainingCapacity >= 0) {
                 // If so, add it and update the remaining capacity
                 leftPacketBuffer.add(new TransmittingPacket(packet, Direction.RIGHT, Main.currentTime));
@@ -205,7 +206,7 @@ public class Link implements Updatable {
             System.out.println("addPacket() from unconnected node");
         }
         // We dropped this packet
-        packetDrops = packetDrops + 1;
+        packetDrops++;
         return false;
     }
 
@@ -339,7 +340,6 @@ public class Link implements Updatable {
         sumBufferCapacity += linkBuffer - leftBufferRemainingCapacity;
         sumTotalBitsTransmitted += totalBitsTransmitted;
         linkAnalyticsCollector.addToPacketLoss(packetDrops, Main.currentTime);
-        packetDrops = 0;
         // Want link rates in Mbps
         if (Main.currentTime % 100 == 0) {
              linkAnalyticsCollector.addToBuffer(sumBufferCapacity / (100 / Main.intervalTime)
@@ -350,6 +350,7 @@ public class Link implements Updatable {
              sumBufferCapacity = 0;
              sumTotalBitsTransmitted = 0;
         }
+        //packetDrops = 0;
     }
 
     public ArrayList<XYSeries> getDatasets() {

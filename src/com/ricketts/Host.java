@@ -1,5 +1,8 @@
 package com.ricketts;
 
+import com.sun.tools.doclets.internal.toolkit.util.DocFinder;
+import com.sun.tools.javac.code.Type;
+
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Set;
@@ -9,7 +12,9 @@ import java.util.Set;
  */
 public class Host extends Node {
 
-    public final static Double timeoutLengthCatchupFactor = 0.1;
+    private final static Integer TCPFastUpdateInterval = 100;
+    private final static Double TCPFastAlpha = 40.0;
+    private final static Double catchupFactor = .1;
 
     private Link link;
 
@@ -126,24 +131,22 @@ public class Host extends Node {
                 //Furthermore update the round trip times accordingly
                 else {
                     for(int i = flow.firstNotRecievedPacketIndex; i < ackPacketID; ++i) {
+                        // flow.sendTimes.get(i) will be null if we clear all the send times in a rto.
                         if(flow.sendTimes.get(i) != null) {
-                            Integer newRoundTripTime = Main.currentTime - flow.sendTimes.get(i);
-                            // update minRoundTripTime
-                            flow.minRoundTripTime = Math.min(flow.minRoundTripTime, newRoundTripTime);
+                            Integer rtt = Main.currentTime - flow.sendTimes.get(i);
+                            flow.flowAnalyticsCollector.addToPacketDelay(rtt, Main.currentTime);
+                            flow.totalRoundTripTime += rtt;
+                            if (rtt < flow.minRoundTripTime) {
+                                flow.minRoundTripTime = rtt;
+                            }
                             // update avgRoundTripTime
                             if (flow.avgRoundTripTime == null) {
-                                flow.avgRoundTripTime = newRoundTripTime * 1.0;
+                                flow.avgRoundTripTime = rtt * 1.0;
                             } else {
-                                flow.avgRoundTripTime = flow.avgRoundTripTime * (1 - timeoutLengthCatchupFactor)
-                                        + newRoundTripTime * timeoutLengthCatchupFactor;
+                                flow.avgRoundTripTime = flow.avgRoundTripTime * (1 - catchupFactor)
+                                        + rtt * catchupFactor;
                             }
-                            // update stdDevRoundTripTime
-                            if (flow.stdDevRoundTripTime == null) {
-                                flow.stdDevRoundTripTime = newRoundTripTime * 1.0;
-                            } else {
-                                flow.stdDevRoundTripTime = flow.stdDevRoundTripTime * (1 - timeoutLengthCatchupFactor)
-                                        + Math.abs(newRoundTripTime - flow.avgRoundTripTime) * timeoutLengthCatchupFactor;
-                            }
+                            flow.numRtts++;
                             flow.sendTimes.remove(i);
                         }
                     }
@@ -170,7 +173,11 @@ public class Host extends Node {
                         this.link.addPacket(packet, this);
                         System.out.println("FASTRETransmission of Packet " + packet.getID() + " at time " + Main.currentTime);
                         flow.currBitsSent += packet.getSize();
-                        // Since everything we sent won't go through, reset the window size to
+                        // Since we haven't found a RTT for the retransmitted packets, assume the RTT is
+                        // RTO * 1.2.
+                        flow.totalRoundTripTime += (int) (flow.timeoutLength * 1.2);
+                        flow.numRtts += 1;
+                        // Since everything we sent won't go through, reset the window size occupied to
                         // 1 (since we just retransmitted a packet).
                         flow.windowOccupied = 1;
                         flow.mostRecentQueued = packet.getID();
@@ -288,6 +295,10 @@ public class Host extends Node {
                         flow.slowStart = true;
                         flow.windowSize = Flow.initWindowSize;
                     }
+                    // Since we haven't found a RTT for the retransmitted packets, assume the RTT is
+                    // RTO * 1.2 for all packets currently queued.
+                    flow.totalRoundTripTime += (int) (flow.timeoutLength * 1.2);
+                    flow.numRtts += 1;
                     flow.sendTimes.clear();
                     flow.sendTimes.put(minTimedOutPacketID, Main.currentTime);
                     flow.windowOccupied = 1;
@@ -326,15 +337,41 @@ public class Host extends Node {
                         }
                     }
                 }
+                // Update FastTCP window size
+                if (protocol == Main.Protocol.FAST && flow.minRoundTripTime < Integer.MAX_VALUE
+                        && flow.activated && Main.currentTime % TCPFastUpdateInterval == 0) {
+                    // if avgRTT is null no ACK was acknowledged so force window size down
+                    if (flow.avgRoundTripTime == null) {
+                        flow.windowSize = (int) (flow.windowSize / 1.05);
+                    } else {
+                        // update window size using the avgRTT
+                        flow.windowSize = (int) (catchupFactor * ((flow.windowSize * (flow.minRoundTripTime /
+                                flow.avgRoundTripTime)) + TCPFastAlpha)
+                                + (1.0 - catchupFactor) * flow.windowSize);
+
+                        // reset avgRTT since we want to react to average RTTs in small portions to avoid sluggish
+                        // response
+                        flow.avgRoundTripTime = null;
+                    }
+                }
+                // Handle RTT divide by 0 error
+                if (flow.numRtts == 0) {
+                    flow.numRtts = 1;
+                }
+                // Update RTO threshold to be 3 * average RTT
+                //flow.timeoutLength = 3 * flow.totalRoundTripTime / flow.numRtts;
                 flow.totalBitsSent += flow.currBitsSent;
-                flow.flowAnalyticsCollector.addToWindowSize(flow.windowSize, Main.currentTime);
-                flow.flowAnalyticsCollector.addToPacketDelay(flow.avgRoundTripTime, Main.currentTime);
+                if (flow.windowSize < 200 && flow.windowSize > 0) {
+                    flow.flowAnalyticsCollector.addToWindowSize(flow.windowSize, Main.currentTime);
+                }
                 // Average the flow rate over an interval of 100 ms
                 if (Main.currentTime % 100 == 0) {
                     flow.flowAnalyticsCollector.addToFlowRates((double) flow.totalBitsSent / (100 / Main.intervalTime)
                             * Main.intervalTime / 1048.576, Main.currentTime);
                     flow.totalBitsSent = 0;
                 }
+                flow.totalRoundTripTime = 0;
+                flow.numRtts = 0;
             }
         }
     }
