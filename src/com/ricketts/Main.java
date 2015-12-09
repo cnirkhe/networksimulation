@@ -115,7 +115,7 @@ public class Main {
         OverlaidPlot op5 = new OverlaidPlot("Flow Rate", "graphs/Flow Rate " + filenameSubstring + ".png", flowRates,
                 "Time (ms)", "Flow Rate (Mbps)", 888, 888);
         OverlaidPlot op6 = new OverlaidPlot("Window Size", "graphs/Window Size " + filenameSubstring + ".png", windowSizes,
-                "Time (ms)", "Window Size (pkts)", 888, 888);
+                "Time (ms)", "Window Size (pkts)", 888, 188);
         OverlaidPlot op7 = new OverlaidPlot("Packet delay", "graphs/Packet Delay " + filenameSubstring + ".png", packetDelay,
                 "Time (ms)", "Packet Delay (ms)", 888, 888);
     }
