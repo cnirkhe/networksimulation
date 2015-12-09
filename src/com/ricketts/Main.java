@@ -29,8 +29,8 @@ public class Main {
      */
     public static void main(String[] args) {
         ArrayList<String> fileList = new ArrayList<>();
-        fileList.add("h0.json");
-        fileList.add("h1.json");
+        fileList.add("t0.json");
+        fileList.add("t1.json");
         fileList.add("t2.json");
 
         ArrayList<Integer> protocols = new ArrayList<>();
