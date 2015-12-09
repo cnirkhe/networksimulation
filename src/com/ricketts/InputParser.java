@@ -8,7 +8,6 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.LinkedList;
 
 /**
  * The InputParser is used to read the JSON definition for the parameters of the project and convert it to objects.
