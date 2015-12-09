@@ -10,9 +10,12 @@ import java.util.HashMap;
  */
 public class Main {
     /**
-     * Set the initial time and interval time which will be updated as the simulation progresses.
+     * Set the initial time which will be updated as the simulation progresses.
      */
     public static int currentTime = 0;
+    /**
+     * Set the interval rate we update at.
+     */
     public static final int intervalTime = 1;
 
     /**
@@ -25,7 +28,7 @@ public class Main {
 
     /**
      * Run the simulation!!!!!
-     * @param args
+     * @param args Args
      */
     public static void main(String[] args) {
         ArrayList<String> fileList = new ArrayList<>();
