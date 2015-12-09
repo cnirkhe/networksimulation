@@ -5,7 +5,7 @@
     ],
     "routers" : [],
     "links" : [
-        {"id": 1, "capacity": 10, "transmissionDelay": 10, "bufferSize": 64}
+        {"id": 1, "capacity": 10, "transmissionDelay": 10, "bufferSize": 64, "graph": true}
     ],
     "flows" : [
         {"id": 1, "source": "h1", "destination": "h2", "dataAmount": 20, "startTime": 1}

@@ -82,16 +82,16 @@ public class Main {
 
 
         // Get flow and link stats
-        ArrayList<XYSeries> leftBuffer = new ArrayList<>();
-        ArrayList<XYSeries> rightBuffer = new ArrayList<>();
+        ArrayList<XYSeries> buffer = new ArrayList<>();
         ArrayList<XYSeries> packetLoss = new ArrayList<>();
         ArrayList<XYSeries> linkRates = new ArrayList<>();
         for (Link l : links) {
-            ArrayList<XYSeries> curr = l.getDatasets();
-            leftBuffer.add(curr.get(0));
-            rightBuffer.add(curr.get(1));
-            packetLoss.add(curr.get(2));
-            linkRates.add(curr.get(3));
+            if (l.graph) {
+                ArrayList<XYSeries> curr = l.getDatasets();
+                buffer.add(curr.get(0));
+                packetLoss.add(curr.get(1));
+                linkRates.add(curr.get(2));
+            }
         }
         ArrayList<XYSeries> flowRates = new ArrayList<>();
         ArrayList<XYSeries> windowSizes = new ArrayList<>();
@@ -104,19 +104,17 @@ public class Main {
             packetDelay.add(curr.get(2));
         }
 
-        OverlaidPlot op1 = new OverlaidPlot("Left Buffer", "graphs/Left Buffer Occupancy " + filenameSubstring + ".png", leftBuffer,
-                "Time (ms)", "Buffer occupancy (bits)", 888, 888);
-        OverlaidPlot op2 = new OverlaidPlot("Right Buffer", "graphs/Right Buffer Occupancy " + filenameSubstring + ".png", rightBuffer,
-                "Time (ms)", "Buffer occupancy (bits)", 888, 888);
+        OverlaidPlot op1 = new OverlaidPlot("Buffer", "graphs/Buffer Occupancy " + filenameSubstring + ".png", buffer,
+                "Time (ms)", "Buffer occupancy (bits)", 888, 188);
         OverlaidPlot op3 = new OverlaidPlot("Packet Loss", "graphs/Packet Loss " + filenameSubstring + ".png", packetLoss,
-                "Time (ms)", "Packet Loss (pkts)", 888, 888);
+                "Time (ms)", "Packet Loss (pkts)", 888, 188);
         OverlaidPlot op4 = new OverlaidPlot("Link Rates", "graphs/Link Rates " + filenameSubstring + ".png", linkRates,
-                "Time (ms)", "Link Rate (Mbps)", 888, 888);
+                "Time (ms)", "Link Rate (Mbps)", 888, 188);
         OverlaidPlot op5 = new OverlaidPlot("Flow Rate", "graphs/Flow Rate " + filenameSubstring + ".png", flowRates,
-                "Time (ms)", "Flow Rate (Mbps)", 888, 888);
+                "Time (ms)", "Flow Rate (Mbps)", 888, 188);
         OverlaidPlot op6 = new OverlaidPlot("Window Size", "graphs/Window Size " + filenameSubstring + ".png", windowSizes,
                 "Time (ms)", "Window Size (pkts)", 888, 188);
         OverlaidPlot op7 = new OverlaidPlot("Packet delay", "graphs/Packet Delay " + filenameSubstring + ".png", packetDelay,
-                "Time (ms)", "Packet Delay (ms)", 888, 888);
+                "Time (ms)", "Packet Delay (ms)", 888, 188);
     }
 }

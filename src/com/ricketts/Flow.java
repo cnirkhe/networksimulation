@@ -54,7 +54,7 @@ public class Flow {
      * Bits sent within this update session
      */
     public Integer currBitsSent;
-
+    public Integer totalBitsSent;
 
     private Integer id;
     private Host source;
@@ -83,6 +83,7 @@ public class Flow {
         this.startTime = startTime;
         this.flowAnalyticsCollector = new FlowAnalyticsCollector(this.id, name);
         this.protocol = protocol;
+        this.totalBitsSent = 0;
 
         activated = false;
     }
@@ -96,8 +97,8 @@ public class Flow {
         this.numberOfLatestACKIDRecieved = 0;
         this.sendTimes = new HashMap<>();
         this.minRoundTripTime = Integer.MAX_VALUE;
-        this.avgRoundTripTime = null;
-        this.stdDevRoundTripTime = null;
+        this.avgRoundTripTime = 0.0;
+        this.stdDevRoundTripTime = 0.0;
         this.currBitsSent = 0;
         this.partialWindowSize = 0;
         this.slowStart = true;

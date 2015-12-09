@@ -326,8 +326,15 @@ public class Host extends Node {
                         }
                     }
                 }
-                flow.flowAnalyticsCollector.addToFlowRates(((double) flow.currBitsSent / 100000) / ((double) Main.intervalTime / 1000), Main.currentTime);
+                flow.totalBitsSent += flow.currBitsSent;
                 flow.flowAnalyticsCollector.addToWindowSize(flow.windowSize, Main.currentTime);
+                flow.flowAnalyticsCollector.addToPacketDelay(flow.avgRoundTripTime, Main.currentTime);
+                // Average the flow rate over an interval of 100 ms
+                if (Main.currentTime % 100 == 0) {
+                    flow.flowAnalyticsCollector.addToFlowRates((double) flow.totalBitsSent / (100 / Main.intervalTime)
+                            * Main.intervalTime / 1048.576, Main.currentTime);
+                    flow.totalBitsSent = 0;
+                }
             }
         }
     }

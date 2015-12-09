@@ -134,8 +134,9 @@ public class InputParser {
                 int capacity = (int) (linkJson.getDouble("capacity") * 1048.576);
                 int transmissionDelay = linkJson.getInt("transmissionDelay");
                 int buffer = linkJson.getInt("bufferSize") * 8192;
+                boolean graph = linkJson.getBoolean("graph");
                 // add in left node and right node
-                output.add(new Link(id, capacity, transmissionDelay, buffer, filename));
+                output.add(new Link(id, capacity, transmissionDelay, buffer, filename, graph));
             }
         } catch (JSONException e) {
             System.out.println(e);

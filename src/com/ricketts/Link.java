@@ -52,6 +52,11 @@ public class Link implements Updatable {
     private LinkAnalyticsCollector linkAnalyticsCollector;
 
     /**
+     * Indicator for whether or not we should graph this link
+     */
+    public Boolean graph;
+
+    /**
      * Data class associating a direction and start time with a packet being
      * transmitted on a link.
      */
@@ -87,9 +92,16 @@ public class Link implements Updatable {
     private Integer totalBitsTransmitted;
 
     /**
+     * Total buffer capacity and link rate over an interval so we can average for analytics.
+     */
+    private Integer sumTotalBitsTransmitted;
+    private Integer sumBufferCapacity;
+
+    /**
      * Constructor without nodes defined
      */
-    public Link(Integer linkID, Integer linkRate, Integer linkDelay, Integer linkBuffer, String name) {
+    public Link(Integer linkID, Integer linkRate, Integer linkDelay, Integer linkBuffer, String name,
+                boolean graph) {
         this.linkID = linkID;
         this.linkRate = linkRate;
         this.linkDelay = linkDelay;
@@ -102,6 +114,9 @@ public class Link implements Updatable {
         this.packetDrops = 0;
         this.totalBitsTransmitted = 0;
         this.linkAnalyticsCollector = new LinkAnalyticsCollector(linkID, name);
+        this.sumBufferCapacity = 0;
+        this.sumTotalBitsTransmitted = 0;
+        this.graph = graph;
 
         initializeBufferDelayEstimate();
 
@@ -264,10 +279,6 @@ public class Link implements Updatable {
             }
         }
 
-        //TODO placed for debug
-        int leftBufferSize = leftPacketBuffer.size();
-        int rightBufferSize = rightPacketBuffer.size();
-
         Integer bitsAddedToLink = 0;
         Integer bitsAddableToLink = Main.intervalTime * this.linkRate;
         boolean transmitPackets = true;
@@ -330,13 +341,20 @@ public class Link implements Updatable {
         }
 
         // Want rates per second
-        linkAnalyticsCollector.addToLeftBuffer((linkBuffer - leftBufferRemainingCapacity) / ((double) Main.intervalTime), Main.currentTime);
-        //System.out.println((linkBuffer - leftBufferRemainingCapacity));
-        linkAnalyticsCollector.addToRightBuffer((linkBuffer - rightBufferRemainingCapacity) / ((double) Main.intervalTime), Main.currentTime);
+        sumBufferCapacity += linkBuffer - leftBufferRemainingCapacity;
+        sumTotalBitsTransmitted += totalBitsTransmitted;
         linkAnalyticsCollector.addToPacketLoss(packetDrops, Main.currentTime);
         packetDrops = 0;
         // Want link rates in Mbps
-        linkAnalyticsCollector.addToLinkRates(totalBitsTransmitted * Main.intervalTime / 1048.576 , Main.currentTime);
+        if (Main.currentTime % 100 == 0) {
+             linkAnalyticsCollector.addToBuffer(sumBufferCapacity / (100 / Main.intervalTime)
+                    / ((double) Main.intervalTime), Main.currentTime);
+             // Convert from bits / s to Mbps -> divide by 1048.57
+             linkAnalyticsCollector.addToLinkRates(sumTotalBitsTransmitted / (100 / Main.intervalTime)
+                            * Main.intervalTime / 1048.576, Main.currentTime);
+             sumBufferCapacity = 0;
+             sumTotalBitsTransmitted = 0;
+        }
     }
 
     public ArrayList<XYSeries> getDatasets() {
