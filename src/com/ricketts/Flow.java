@@ -122,7 +122,7 @@ public class Flow {
      * @param initID The first ID number for the corresponding sequence of DataPackets
      * @return LinkedList of all the data packets in sequential order.
      */
-    public ArrayList<DataPacket> generateDataPackets(Integer initID) {
+    private ArrayList<DataPacket> generateDataPackets(Integer initID) {
         Integer dataPacketSize = DataPacket.DataPacketSize;
         //We have to take the intValue or we're manipulating that data point itself (Objects not Primitives)
         Integer dataToPacketSize = this.dataSize.intValue();

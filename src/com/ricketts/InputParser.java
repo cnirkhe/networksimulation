@@ -131,7 +131,7 @@ public class InputParser {
             for (int i = 0; i < linkArray.length(); ++i) {
                 JSONObject linkJson = linkArray.getJSONObject(i);
                 int id = linkJson.getInt("id");
-                int capacity = (int) (linkJson.getInt("capacity") * 1048.576);
+                int capacity = (int) (linkJson.getDouble("capacity") * 1048.576);
                 int transmissionDelay = linkJson.getInt("transmissionDelay");
                 int buffer = linkJson.getInt("bufferSize") * 8192;
                 // add in left node and right node

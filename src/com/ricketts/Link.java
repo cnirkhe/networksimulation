@@ -282,15 +282,15 @@ public class Link implements Updatable {
             if (leftPacket == null) {
                 if (rightPacket == null) {
                     break;
-                } else {
+                } else if(rightPacket.packet.getSize() <= bitsAddableToLink - bitsAddedToLink) {
                     transmittingPacket = rightPacketBuffer.remove();
                     transmittingDirection = Direction.LEFT;
                 }
             } else if ( (rightPacket == null || leftPacket.transmissionStartTime < rightPacket.transmissionStartTime) &&
-                    leftPacket.packet.getSize() < bitsAddableToLink - bitsAddedToLink) {
+                    leftPacket.packet.getSize() <= bitsAddableToLink - bitsAddedToLink) {
                 transmittingPacket = leftPacketBuffer.remove();
                 transmittingDirection = Direction.RIGHT;
-            } else if (rightPacket != null && rightPacket.packet.getSize() < bitsAddableToLink - bitsAddedToLink) {
+            } else if (rightPacket != null && rightPacket.packet.getSize() <= bitsAddableToLink - bitsAddedToLink) {
                 transmittingPacket = rightPacketBuffer.remove();
                 transmittingDirection = Direction.LEFT;
             } else {

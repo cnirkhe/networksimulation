@@ -162,7 +162,6 @@ public class Host extends Node {
                 //TODO why keep track of flow.mostRecentRetransmittedPacket?
                 if (flow.numberOfLatestACKIDRecieved >= 3 && flow.mostRecentRetransmittedPacket != ackPacketID) {
                     flow.mostRecentRetransmittedPacket = ackPacketID;
-                    System.out.println("FAST RETRANSMIT");
                     DataPacket packet = flow.packets.get(flow.firstNotRecievedPacketIndex);
                     flow.sendTimes.put(flow.firstNotRecievedPacketIndex, Main.currentTime);
                     this.link.clearBuffer(this);
@@ -265,33 +264,37 @@ public class Host extends Node {
                 // For each currently outstanding packet, check if the
                 // timeout time has elapsed since it was sent, and
                 // retransmit if so
+                Integer minTimedOutPacketID = Integer.MAX_VALUE;
+
                 Set<Integer> sentPacketIDs = flow.sendTimes.keySet();
                 for(Integer sentPacketID : sentPacketIDs) {
                     Integer sendTime = flow.sendTimes.get(sentPacketID);
-
-                    //TODO: QUESTION @ ELAINE:
-                    //TODO: Shouldn't we just be starting from the packet of smallest ID that has timed out?
-
-                    if(sendTime + flow.timeoutLength < Main.currentTime) {
+                 if (sendTime + flow.timeoutLength < Main.currentTime) {
                         //Flow has timed out
-                        if(protocol == Main.Protocol.RENO) {
-                            if (flow.windowSize / 2 < 2) {
-                                flow.ssthresh = 2;
-                            } else {
-                                flow.ssthresh = flow.windowSize / 2;
-                            }
-                            flow.slowStart = true;
-                            flow.windowSize = Flow.initWindowSize;
-                        }
-                        flow.sendTimes.put(sentPacketID, Main.currentTime);
-                        flow.windowOccupied = 1;
-                        flow.mostRecentQueued = sentPacketID;
-                        link.clearBuffer(this);
-                        DataPacket packetToResend = flow.packets.get(sentPacketID);
-                        this.link.addPacket(packetToResend, this);
-                        System.out.println("RETransmission of Packet " + packetToResend.getID() + " at time " + Main.currentTime);
-                        flow.currBitsSent += packetToResend.getSize();
+                        if (minTimedOutPacketID > sentPacketID)
+                            minTimedOutPacketID = sentPacketID;
                     }
+                }
+
+                //Now for the minTimedOutPackedID (assuming sentPacketIDs wasn't empty)
+                if(minTimedOutPacketID != Integer.MAX_VALUE) {
+                    if (protocol == Main.Protocol.RENO) {
+                        if (flow.windowSize / 2 < 2) {
+                            flow.ssthresh = 2;
+                        } else {
+                            flow.ssthresh = flow.windowSize / 2;
+                        }
+                        flow.slowStart = true;
+                        flow.windowSize = Flow.initWindowSize;
+                    }
+                    flow.sendTimes.put(minTimedOutPacketID, Main.currentTime);
+                    flow.windowOccupied = 1;
+                    flow.mostRecentQueued = minTimedOutPacketID;
+                    link.clearBuffer(this);
+                    DataPacket packetToResend = flow.packets.get(minTimedOutPacketID);
+                    this.link.addPacket(packetToResend, this);
+                    System.out.println("RETransmission of Packet " + packetToResend.getID() + " at time " + Main.currentTime);
+                    flow.currBitsSent += packetToResend.getSize();
                 }
 
                 // Packets are ACKed sequentially, so the outstanding

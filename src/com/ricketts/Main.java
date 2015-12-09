@@ -30,12 +30,12 @@ public class Main {
     public static void main(String[] args) {
 
         String filename = new String("h0.json");
-        String f2 = filename.substring(0, filename.length() - ".json".length());
+        String filenameSubstring = filename.substring(0, filename.length() - ".json".length());
         InputParser ip = new InputParser();
         ip.parseJSON(filename);
 
         //First we derive all the links
-        ArrayList<Link> links = ip.extractLinks(f2, protocol);
+        ArrayList<Link> links = ip.extractLinks(filenameSubstring, protocol);
         HashMap<Integer, Link> linkMap = InputParser.makeLinkMap(links);
 
         //But these links don't have their nodes linked
@@ -51,12 +51,12 @@ public class Main {
         HashMap<String, Node> addressBook = InputParser.makeNodeMap(nodes);
 
         // Make flows
-        ArrayList<Flow> flows = ip.extractFlows(addressBook, f2, protocol);
+        ArrayList<Flow> flows = ip.extractFlows(addressBook, filenameSubstring, protocol);
 
         // Add nodes to links
         InputParser.addNodesToLinks(nodes);
 
-        //After nodes are added to links, we can now setup routingtables
+        //After nodes are added to links, we can now setup routing tables
         //Have each router setup its routing table based on its neighbors
         for (Router router : routers) {
             router.initializeRoutingTable();
@@ -69,10 +69,6 @@ public class Main {
         ArrayList<Updatable> updatableLinkedList = new ArrayList<>();
         updatableLinkedList.addAll(nodes);
         updatableLinkedList.addAll(links);
-
-        //TODO Remove for Debug
-        int[] pauseTimes = {0, 1000};
-        int i = 0;
 
         //running of the simulation
         for (; currentTime < 30000; currentTime += intervalTime) {
@@ -106,19 +102,19 @@ public class Main {
             packetDelay.add(curr.get(2));
         }
 
-        OverlaidPlot op1 = new OverlaidPlot("Left Buffer", "Left Buffer Occupancy " + f2 + ".png", leftBuffer,
+        OverlaidPlot op1 = new OverlaidPlot("Left Buffer", "Left Buffer Occupancy " + filenameSubstring + ".png", leftBuffer,
                 "Time (ms)", "Buffer occupancy (bits)", 888, 888);
-        OverlaidPlot op2 = new OverlaidPlot("Right Buffer", "Right Buffer Occupancy " + f2 + ".png", rightBuffer,
+        OverlaidPlot op2 = new OverlaidPlot("Right Buffer", "Right Buffer Occupancy " + filenameSubstring + ".png", rightBuffer,
                 "Time (ms)", "Buffer occupancy (bits)", 888, 888);
-        OverlaidPlot op3 = new OverlaidPlot("Packet Loss", "Packet Loss " + f2 + ".png", packetLoss,
+        OverlaidPlot op3 = new OverlaidPlot("Packet Loss", "Packet Loss " + filenameSubstring + ".png", packetLoss,
                 "Time (ms)", "Packet Loss (pkts)", 888, 888);
-        OverlaidPlot op4 = new OverlaidPlot("Link Rates", "Link Rates " + f2 + ".png", linkRates,
+        OverlaidPlot op4 = new OverlaidPlot("Link Rates", "Link Rates " + filenameSubstring + ".png", linkRates,
                 "Time (ms)", "Link Rate (Mbps)", 888, 888);
-        OverlaidPlot op5 = new OverlaidPlot("Flow Rate", "Flow Rate " + f2 + ".png", flowRates,
+        OverlaidPlot op5 = new OverlaidPlot("Flow Rate", "Flow Rate " + filenameSubstring + ".png", flowRates,
                 "Time (ms)", "Flow Rate (Mbps)", 888, 888);
-        OverlaidPlot op6 = new OverlaidPlot("Window Size", "Window Size " + f2 + ".png", windowSizes,
+        OverlaidPlot op6 = new OverlaidPlot("Window Size", "Window Size " + filenameSubstring + ".png", windowSizes,
                 "Time (ms)", "Window Size (pkts)", 888, 888);
-        OverlaidPlot op7 = new OverlaidPlot("Packet delay", "Packet Delay " + f2 + ".png", packetDelay,
+        OverlaidPlot op7 = new OverlaidPlot("Packet delay", "Packet Delay " + filenameSubstring + ".png", packetDelay,
                 "Time (ms)", "Packet Delay (ms)", 888, 888);
     }
 }
