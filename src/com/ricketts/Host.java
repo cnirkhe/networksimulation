@@ -159,8 +159,6 @@ public class Host extends Node {
                 // If this packet has been ACKed three or more time, assume
                 // it's been dropped and retransmit (TCP FAST)
 
-                //TODO QUESTION @ ELAINE
-                //TODO why keep track of flow.mostRecentRetransmittedPacket?
                 if (flow.numberOfLatestACKIDRecieved >= 3 && flow.mostRecentRetransmittedPacket != ackPacketID) {
                     if (protocol != Main.Protocol.RENO || !flow.slowStart) {
                         flow.mostRecentRetransmittedPacket = ackPacketID;
