@@ -29,7 +29,7 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String filename = new String("h0.json");
+        String filename = new String("h1.json");
         String filenameSubstring = filename.substring(0, filename.length() - ".json".length());
         InputParser ip = new InputParser();
         ip.parseJSON(filename);
@@ -102,19 +102,19 @@ public class Main {
             packetDelay.add(curr.get(2));
         }
 
-        OverlaidPlot op1 = new OverlaidPlot("Left Buffer", "Left Buffer Occupancy " + filenameSubstring + ".png", leftBuffer,
+        OverlaidPlot op1 = new OverlaidPlot("Left Buffer", "graphs/Left Buffer Occupancy " + filenameSubstring + ".png", leftBuffer,
                 "Time (ms)", "Buffer occupancy (bits)", 888, 888);
-        OverlaidPlot op2 = new OverlaidPlot("Right Buffer", "Right Buffer Occupancy " + filenameSubstring + ".png", rightBuffer,
+        OverlaidPlot op2 = new OverlaidPlot("Right Buffer", "graphs/Right Buffer Occupancy " + filenameSubstring + ".png", rightBuffer,
                 "Time (ms)", "Buffer occupancy (bits)", 888, 888);
-        OverlaidPlot op3 = new OverlaidPlot("Packet Loss", "Packet Loss " + filenameSubstring + ".png", packetLoss,
+        OverlaidPlot op3 = new OverlaidPlot("Packet Loss", "graphs/Packet Loss " + filenameSubstring + ".png", packetLoss,
                 "Time (ms)", "Packet Loss (pkts)", 888, 888);
-        OverlaidPlot op4 = new OverlaidPlot("Link Rates", "Link Rates " + filenameSubstring + ".png", linkRates,
+        OverlaidPlot op4 = new OverlaidPlot("Link Rates", "graphs/Link Rates " + filenameSubstring + ".png", linkRates,
                 "Time (ms)", "Link Rate (Mbps)", 888, 888);
-        OverlaidPlot op5 = new OverlaidPlot("Flow Rate", "Flow Rate " + filenameSubstring + ".png", flowRates,
+        OverlaidPlot op5 = new OverlaidPlot("Flow Rate", "graphs/Flow Rate " + filenameSubstring + ".png", flowRates,
                 "Time (ms)", "Flow Rate (Mbps)", 888, 888);
-        OverlaidPlot op6 = new OverlaidPlot("Window Size", "Window Size " + filenameSubstring + ".png", windowSizes,
+        OverlaidPlot op6 = new OverlaidPlot("Window Size", "graphs/Window Size " + filenameSubstring + ".png", windowSizes,
                 "Time (ms)", "Window Size (pkts)", 888, 888);
-        OverlaidPlot op7 = new OverlaidPlot("Packet delay", "Packet Delay " + filenameSubstring + ".png", packetDelay,
+        OverlaidPlot op7 = new OverlaidPlot("Packet delay", "graphs/Packet Delay " + filenameSubstring + ".png", packetDelay,
                 "Time (ms)", "Packet Delay (ms)", 888, 888);
     }
 }

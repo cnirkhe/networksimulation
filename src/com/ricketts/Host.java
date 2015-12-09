@@ -161,33 +161,34 @@ public class Host extends Node {
                 //TODO QUESTION @ ELAINE
                 //TODO why keep track of flow.mostRecentRetransmittedPacket?
                 if (flow.numberOfLatestACKIDRecieved >= 3 && flow.mostRecentRetransmittedPacket != ackPacketID) {
-                    flow.mostRecentRetransmittedPacket = ackPacketID;
-                    DataPacket packet = flow.packets.get(flow.firstNotRecievedPacketIndex);
-                    flow.sendTimes.put(flow.firstNotRecievedPacketIndex, Main.currentTime);
-                    this.link.clearBuffer(this);
-                    this.link.addPacket(packet, this);
-                    System.out.println("FASTRETransmission of Packet " + packet.getID() + " at time " + Main.currentTime);
-                    flow.currBitsSent += packet.getSize();
-                    // Since everything we sent won't go through, reset the window size to
-                    // 1 (since we just retransmitted a packet).
-                    flow.windowOccupied = 1;
-                    flow.mostRecentQueued = packet.getID();
-                    if (protocol == Main.Protocol.RENO && !flow.awaitingRetransmit) {
-                        // Enter FR/FR.
-                        if (flow.windowSize / 2 < 2) {
-                            flow.ssthresh = 2;
+                    if (protocol != Main.Protocol.RENO || !flow.slowStart) {
+                        flow.mostRecentRetransmittedPacket = ackPacketID;
+                        DataPacket packet = flow.packets.get(flow.firstNotRecievedPacketIndex);
+                        flow.sendTimes.put(flow.firstNotRecievedPacketIndex, Main.currentTime);
+                        this.link.clearBuffer(this);
+                        this.link.addPacket(packet, this);
+                        System.out.println("FASTRETransmission of Packet " + packet.getID() + " at time " + Main.currentTime);
+                        flow.currBitsSent += packet.getSize();
+                        // Since everything we sent won't go through, reset the window size to
+                        // 1 (since we just retransmitted a packet).
+                        flow.windowOccupied = 1;
+                        flow.mostRecentQueued = packet.getID();
+                        if (protocol == Main.Protocol.RENO && !flow.awaitingRetransmit) {
+                            // Enter FR/FR.
+                            if (flow.windowSize / 2 < 2) {
+                                flow.ssthresh = 2;
+                            } else {
+                                flow.ssthresh = flow.windowSize / 2;
+                            }
+                            // Wait for packet retransmit, at that point we will deflate the
+                            // window.
+                            flow.awaitingRetransmit = true;
+                            // cwnd <- ssthresh + ndup (temp window inflation)
+                            flow.windowSize = flow.ssthresh + flow.numberOfLatestACKIDRecieved;
+                            flow.slowStart = false;
                         }
-                        else {
-                            flow.ssthresh = flow.windowSize / 2;
-                        }
-                        // Wait for packet retransmit, at that point we will deflate the
-                        // window.
-                        flow.awaitingRetransmit = true;
-                        // cwnd <- ssthresh + ndup (temp window inflation)
-                        flow.windowSize = flow.ssthresh + flow.numberOfLatestACKIDRecieved;
-                        flow.slowStart = false;
+                        flow.numberOfLatestACKIDRecieved = 0;
                     }
-                    flow.numberOfLatestACKIDRecieved = 0;
                 }
             }
         }
@@ -243,7 +244,6 @@ public class Host extends Node {
      * to the link buffer.
      */
     public void update() {
-
         //Activate the flow if the time is ready
         if(flow != null && flow.getStartTime() <= Main.currentTime && flow.activated == false) {
             flow.activateFlow();
@@ -270,9 +270,9 @@ public class Host extends Node {
                 for(Integer sentPacketID : sentPacketIDs) {
                     Integer sendTime = flow.sendTimes.get(sentPacketID);
                  if (sendTime + flow.timeoutLength < Main.currentTime) {
-                        //Flow has timed out
-                        if (minTimedOutPacketID > sentPacketID)
-                            minTimedOutPacketID = sentPacketID;
+                    //Flow has timed out
+                    if (minTimedOutPacketID > sentPacketID)
+                        minTimedOutPacketID = sentPacketID;
                     }
                 }
 
@@ -287,6 +287,7 @@ public class Host extends Node {
                         flow.slowStart = true;
                         flow.windowSize = Flow.initWindowSize;
                     }
+                    flow.sendTimes.clear();
                     flow.sendTimes.put(minTimedOutPacketID, Main.currentTime);
                     flow.windowOccupied = 1;
                     flow.mostRecentQueued = minTimedOutPacketID;

@@ -12,7 +12,7 @@ import java.util.*;
 public class Flow {
 
     public final static Integer initWindowSize = 1;
-    public final static Integer initTimeoutLength = 700;
+    public final static Integer initTimeoutLength = 1000;
 
     public Integer windowSize;
     public Integer timeoutLength;
