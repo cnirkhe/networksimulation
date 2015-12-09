@@ -82,7 +82,7 @@ public class Flow {
         this.destination = destination;
         this.dataSize = dataSize;
         this.startTime = startTime;
-        this.flowAnalyticsCollector = new FlowAnalyticsCollector(this.id, name);
+        this.flowAnalyticsCollector = new FlowAnalyticsCollector(this.id);
         this.protocol = protocol;
         this.totalBitsSent = 0;
 
