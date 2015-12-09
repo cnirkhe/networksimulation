@@ -71,7 +71,7 @@ public class Main {
         updatableLinkedList.addAll(links);
 
         //running of the simulation
-        for (; currentTime < 30000; currentTime += intervalTime) {
+        for (; currentTime < 22500; currentTime += intervalTime) {
             System.out.println("Time is currently: " + currentTime);
             if(currentTime % 100 == 0)
                 System.out.println();

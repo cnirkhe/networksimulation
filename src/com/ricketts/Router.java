@@ -10,21 +10,9 @@ import java.util.*;
 public class Router extends Node
 {
     /**
-     * The period at which the Routing Table is broadcast to all of its neighbors
+     * Boolean indicating if routing tables have converged
      */
-    private static final Integer TABLE_BROADCAST_PERIOD = 100;
-
-    private static final Integer TABLE_UPDATE_PERIOD = 100;
-
-    /**
-     * The time left in the period before table update
-     */
-    private Integer timeLeftInUpdatePeriod;
-
-    /**
-     * The time left in the period before rebroadcast
-     */
-    private Integer timeLeftInBroadcastPeriod;
+    private boolean routingTablesConverged = false;
 
     /**
      * The set of Links that this router is connected to
@@ -44,6 +32,8 @@ public class Router extends Node
      */
     private HashMap<Node, Pair<Double, Link>> nextRoutingTable;
 
+    private LinkedList<HashMap<Node, Pair<Double, Link>>> previousRoutingTables;
+
     public Router(String address, ArrayList<Link> links) {
         super(address);
         this.links = links;
@@ -54,8 +44,7 @@ public class Router extends Node
             packetsToSend.put(l, new LinkedList<Packet>());
         }
 
-        timeLeftInBroadcastPeriod = 0;
-        timeLeftInUpdatePeriod = 0;
+        previousRoutingTables = new LinkedList<>();
     }
 
     public ArrayList<Link> getLinks() {
@@ -138,23 +127,48 @@ public class Router extends Node
      */
     public void update() {
 
-        if(timeLeftInBroadcastPeriod <= 0) {
-            timeLeftInBroadcastPeriod = TABLE_BROADCAST_PERIOD;
+        if((routingTablesConverged && Main.currentTime % 5000 == 4000) ||
+                (!routingTablesConverged && Main.currentTime % 100 == 0)) {
+            initializeRoutingTable();
+        }
+
+        if((routingTablesConverged && Main.currentTime % 5000 >= 4000 && Main.currentTime % 100 == 0) ||
+                (!routingTablesConverged && Main.currentTime % 100 == 0)) {
             for(Link link : links) {
                 Node otherEnd = link.getOtherEnd(this);
                 RoutingTablePacket routingTablePacket = new RoutingTablePacket(this, otherEnd, currentRoutingTable);
                 packetsToSend.get(link).addFirst(routingTablePacket);
             }
-        } else {
-            timeLeftInBroadcastPeriod -= Main.intervalTime;
         }
 
-        if(timeLeftInUpdatePeriod <= 0) {
-            timeLeftInUpdatePeriod = TABLE_UPDATE_PERIOD;
-
+        if((routingTablesConverged && Main.currentTime % 5000 == 0) ||
+                (!routingTablesConverged && Main.currentTime % 100 == 0)) {
             //First we ensure that we have entries in every part of the newtable
             //If not, we get them from the old table
             Set<Node> currentNodesKnown = currentRoutingTable.keySet();
+
+            if(previousRoutingTables.size() >= 3)
+            {
+                previousRoutingTables.removeLast();
+                boolean agreement = true;
+                if(!routingTablesConverged) {
+                    for (Node node : currentNodesKnown) {
+                        Pair<Double, Link> currentEntry = currentRoutingTable.get(node);
+                        for (HashMap<Node, Pair<Double, Link>> prevRoutingTable : previousRoutingTables) {
+                            Pair<Double, Link> previousEntry = prevRoutingTable.get(node);
+                            if (previousEntry == null || currentEntry.snd != previousEntry.snd) {
+                                agreement = false;
+                            }
+                        }
+                    }
+                    if (agreement)
+                        routingTablesConverged = true;
+                }
+            }
+            previousRoutingTables.addFirst(currentRoutingTable);
+
+            //First we ensure that we have entries in every part of the newtable
+            //If not, we get them from the old table
             for(Node node : currentNodesKnown) {
                 if(!nextRoutingTable.containsKey(node)) {
                     Pair<Double, Link> entry = currentRoutingTable.get(node);
@@ -163,10 +177,6 @@ public class Router extends Node
             }
 
             currentRoutingTable = nextRoutingTable;
-            initializeRoutingTable();
-
-        } else {
-            timeLeftInUpdatePeriod -= Main.intervalTime;
         }
 
 

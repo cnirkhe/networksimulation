@@ -12,7 +12,6 @@ import java.util.Queue;
  */
 public class Link implements Updatable {
 
-    private final Integer BUFFER_DELAY_PERIOD = 200;
     private Integer timeSinceReBufferDelay;
 
     /**
@@ -240,8 +239,7 @@ public class Link implements Updatable {
     public void update() {
 
         //Buffer Estimate
-        if(timeSinceReBufferDelay < 0) {
-            timeSinceReBufferDelay = BUFFER_DELAY_PERIOD;
+        if(Main.currentTime % 100 == 0) {
 
             if(numbLeftPktsThruBuffer == 0)
                 latestLeftBufferDelayEstimate = 0.0;
@@ -257,11 +255,7 @@ public class Link implements Updatable {
             numbRightPktsThruBuffer = 0;
             sumLeftBufferTime = 0.0;
             sumRightBufferTime = 0.0;
-
-        } else {
-            timeSinceReBufferDelay -= Main.intervalTime;
         }
-
 
         // Reset total bits transmitted for new interval
         totalBitsTransmitted = 0;
@@ -281,6 +275,7 @@ public class Link implements Updatable {
 
         Integer bitsAddedToLink = 0;
         Integer bitsAddableToLink = Main.intervalTime * this.linkRate;
+
         boolean transmitPackets = true;
         while(transmitPackets && !this.leftPacketBuffer.isEmpty() && !this.rightPacketBuffer.isEmpty()) {
             if(leftPacketBuffer.peek().transmissionStartTime <= rightPacketBuffer.peek().transmissionStartTime &&
