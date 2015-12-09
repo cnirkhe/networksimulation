@@ -22,10 +22,8 @@ public abstract class Node implements Updatable
 
     /**
      * Update along the simulation.
-     * @param intervalTime The time step of the simulation
-     * @param overallTime Overall simulation time
      */
-    public abstract void update(Integer intervalTime, Integer overallTime);
+    public abstract void update();
 
     public String getAddress() {
         return this.address;

@@ -19,6 +19,7 @@ import java.util.Iterator;
 public class Main {
 
     public static int currentTime = 0;
+    public static final int intervalTime = 1;
 
     public static class Protocol {
         public static int RENO = 1;
@@ -28,8 +29,8 @@ public class Main {
 
     public static void main(String[] args) {
 
-        String filename = new String("h1.json");
-        String f2 = filename.substring(0, filename.length() - 5);
+        String filename = new String("h0.json");
+        String f2 = filename.substring(0, filename.length() - ".json".length());
         InputParser ip = new InputParser();
         ip.parseJSON(filename);
 
@@ -61,27 +62,24 @@ public class Main {
             router.initializeRoutingTable();
         }
 
+        for(Flow flow : flows) {
+            flow.getSource().addFlow(flow);
+        }
+
         ArrayList<Updatable> updatableLinkedList = new ArrayList<>();
         updatableLinkedList.addAll(nodes);
         updatableLinkedList.addAll(links);
 
-        Integer intervalStep = 5;
+        //TODO Remove for Debug
+        int[] pauseTimes = {0, 1000};
+        int i = 0;
 
-        while (currentTime < 150000) {
-
-            Iterator<Flow> flowIterator = flows.iterator();
-            while(flowIterator.hasNext()) {
-                Flow flow = flowIterator.next();
-                if(flow.getStartTime().equals(currentTime)) {
-                    flow.getSource().addFlow(flow);
-                }
-            }
-
+        //running of the simulation
+        for (; currentTime < 30000; currentTime += intervalTime) {
+            System.out.println("Time is currently: " + currentTime);
             for(Updatable u : updatableLinkedList) {
-                u.update(intervalStep, currentTime);
+                u.update();
             }
-
-            currentTime += intervalStep;
        }
 
 
@@ -109,9 +107,9 @@ public class Main {
         }
 
         OverlaidPlot op1 = new OverlaidPlot("Left Buffer", "Left Buffer Occupancy " + f2 + ".png", leftBuffer,
-                "Time (ms)", "Buffer occupancy (pkts)", 888, 888);
+                "Time (ms)", "Buffer occupancy (bits)", 888, 888);
         OverlaidPlot op2 = new OverlaidPlot("Right Buffer", "Right Buffer Occupancy " + f2 + ".png", rightBuffer,
-                "Time (ms)", "Buffer occupancy (pkts)", 888, 888);
+                "Time (ms)", "Buffer occupancy (bits)", 888, 888);
         OverlaidPlot op3 = new OverlaidPlot("Packet Loss", "Packet Loss " + f2 + ".png", packetLoss,
                 "Time (ms)", "Packet Loss (pkts)", 888, 888);
         OverlaidPlot op4 = new OverlaidPlot("Link Rates", "Link Rates " + f2 + ".png", linkRates,

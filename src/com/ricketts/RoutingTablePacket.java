@@ -29,7 +29,7 @@ public class RoutingTablePacket extends Packet {
      */
     private static int calculateTableSize(HashMap<Node, Pair<Double, Link>> routingTable) {
         int initialCapacity = (routingTable.size() > 16 ? routingTable.size() : 16);
-        return 36 * routingTable.size() + 4 * initialCapacity;
+        return 8 * (36 * routingTable.size() + 4 * initialCapacity);
     }
 
     public HashMap<Node, Pair<Double, Link>> getRoutingTable() {

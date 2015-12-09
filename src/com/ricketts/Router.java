@@ -135,10 +135,8 @@ public class Router extends Node
      * Forwards all the packets queued up along the router along their way.
      * Pays no attention to any constraints.
      * Periodically send the routing table along all links. Also periodically update to the next routing table.
-     * @param intervalTime The time step of the simulation
-     * @param overallTime Overall simulation time
      */
-    public void update(Integer intervalTime, Integer overallTime) {
+    public void update() {
 
         if(timeLeftInBroadcastPeriod <= 0) {
             timeLeftInBroadcastPeriod = TABLE_BROADCAST_PERIOD;
@@ -148,7 +146,7 @@ public class Router extends Node
                 packetsToSend.get(link).addFirst(routingTablePacket);
             }
         } else {
-            timeLeftInBroadcastPeriod -= intervalTime;
+            timeLeftInBroadcastPeriod -= Main.intervalTime;
         }
 
         if(timeLeftInUpdatePeriod <= 0) {
@@ -168,7 +166,7 @@ public class Router extends Node
             initializeRoutingTable();
 
         } else {
-            timeLeftInUpdatePeriod -= intervalTime;
+            timeLeftInUpdatePeriod -= Main.intervalTime;
         }
 
 
