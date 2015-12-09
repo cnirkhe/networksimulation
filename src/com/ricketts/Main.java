@@ -25,14 +25,11 @@ public class Main {
         public static int RENO = 1;
         public static int FAST = 2;
     }
-    public static int protocol;
+    public static int protocol = Protocol.FAST;
 
     public static void main(String[] args) {
 
-        protocol = Protocol.RENO;
-        String filename = new String("h1.json");
-
-
+        String filename = new String("t2.json");
         String filenameSubstring = filename.substring(0, filename.length() - ".json".length());
         InputParser ip = new InputParser();
         ip.parseJSON(filename);
@@ -81,7 +78,7 @@ public class Main {
             for(Updatable u : updatableLinkedList) {
                 u.update();
             }
-       }
+        }
 
 
         // Get flow and link stats

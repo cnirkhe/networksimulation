@@ -241,7 +241,7 @@ public class Host extends Node {
         else if (packet instanceof DataPacket)
             this.receiveDataPacket((DataPacket) packet);
         //else if (packet instanceof RoutingTablePacket)
-            //Do nothing
+        //Do nothing
     }
 
     /**
@@ -274,10 +274,10 @@ public class Host extends Node {
                 Set<Integer> sentPacketIDs = flow.sendTimes.keySet();
                 for(Integer sentPacketID : sentPacketIDs) {
                     Integer sendTime = flow.sendTimes.get(sentPacketID);
-                 if (sendTime + flow.timeoutLength < Main.currentTime) {
-                    //Flow has timed out
-                    if (minTimedOutPacketID > sentPacketID)
-                        minTimedOutPacketID = sentPacketID;
+                    if (sendTime + flow.timeoutLength < Main.currentTime) {
+                        //Flow has timed out
+                        if (minTimedOutPacketID > sentPacketID)
+                            minTimedOutPacketID = sentPacketID;
                     }
                 }
 

@@ -146,7 +146,7 @@ public class Flow {
             DataPacket lastNewPacket = new DataPacket(packetID, this);
             dataPackets.add(lastNewPacket);
         }
-        
+
         return dataPackets;
     }
 

@@ -235,7 +235,6 @@ public class Link implements Updatable {
      * (a) Updating the state of packets currently in transmission
      * (b) Removing transmitted packets
      * (c) Adding packets to the link from the link buffer
-
      */
     public void update() {
 
@@ -342,13 +341,13 @@ public class Link implements Updatable {
         linkAnalyticsCollector.addToPacketLoss(packetDrops, Main.currentTime);
         // Want link rates in Mbps
         if (Main.currentTime % 100 == 0) {
-             linkAnalyticsCollector.addToBuffer(sumBufferCapacity / (100 / Main.intervalTime)
+            linkAnalyticsCollector.addToBuffer(sumBufferCapacity / (100 / Main.intervalTime)
                     / ((double) Main.intervalTime), Main.currentTime);
-             // Convert from bits / s to Mbps -> divide by 1048.57
-             linkAnalyticsCollector.addToLinkRates(sumTotalBitsTransmitted / (100 / Main.intervalTime)
-                            * Main.intervalTime / 1048.576, Main.currentTime);
-             sumBufferCapacity = 0;
-             sumTotalBitsTransmitted = 0;
+            // Convert from bits / s to Mbps -> divide by 1048.57
+            linkAnalyticsCollector.addToLinkRates(sumTotalBitsTransmitted / (100 / Main.intervalTime)
+                    * Main.intervalTime / 1048.576, Main.currentTime);
+            sumBufferCapacity = 0;
+            sumTotalBitsTransmitted = 0;
         }
         //packetDrops = 0;
     }
