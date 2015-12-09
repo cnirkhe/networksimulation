@@ -8,10 +8,16 @@ import java.util.ArrayList;
  */
 public class LinkAnalyticsCollector {
     /**
-     * Series tracking buffer occupancy, link rate, and packet loss over time.
+     * Series tracking buffer occupancy over time.
      */
     private XYSeries bufferOccupancy;
+    /**
+     * Series tracking packet loss.
+     */
     private XYSeries packetLoss;
+    /**
+     * Series tracking link rate.
+     */
     private XYSeries linkRates;
 
     /**
@@ -26,20 +32,20 @@ public class LinkAnalyticsCollector {
 
     /**
      * Add a buffer size and the current time to the buffer series.
-     * @param size Buffer occupancy
+     * @param occupancy Buffer occupancy
      * @param time Current simulation time
      */
-    public void addToBuffer(double size, int time) {
-        bufferOccupancy.add(time, size);
+    public void addToBuffer(double occupancy, int time) {
+        bufferOccupancy.add(time, occupancy);
     }
 
     /**
      * Add a packet loss amount and the current time to the packet loss series.
-     * @param packets Number of packets lost in this interval
+     * @param packetsDropped Number of packets lost in this interval
      * @param time Current simulation time
      */
-    public void addToPacketLoss(int packets, int time) {
-        packetLoss.add(time, packets);
+    public void addToPacketLoss(int packetsDropped, int time) {
+        packetLoss.add(time, packetsDropped);
     }
 
     /**
