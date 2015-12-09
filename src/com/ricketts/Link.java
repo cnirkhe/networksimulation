@@ -279,13 +279,11 @@ public class Link implements Updatable {
             Direction transmittingDirection = null;
             TransmittingPacket leftPacket = this.leftPacketBuffer.peek();
             TransmittingPacket rightPacket = this.rightPacketBuffer.peek();
-            if (leftPacket == null) {
-                if (rightPacket == null) {
+            if (leftPacket == null && rightPacket == null) {
                     break;
-                } else if(rightPacket.packet.getSize() <= bitsAddableToLink - bitsAddedToLink) {
-                    transmittingPacket = rightPacketBuffer.remove();
-                    transmittingDirection = Direction.LEFT;
-                }
+            } else if(leftPacket == null && rightPacket.packet.getSize() <= bitsAddableToLink - bitsAddedToLink) {
+                transmittingPacket = rightPacketBuffer.remove();
+                transmittingDirection = Direction.LEFT;
             } else if ( (rightPacket == null || leftPacket.transmissionStartTime < rightPacket.transmissionStartTime) &&
                     leftPacket.packet.getSize() <= bitsAddableToLink - bitsAddedToLink) {
                 transmittingPacket = leftPacketBuffer.remove();

@@ -126,25 +126,26 @@ public class Host extends Node {
                 //Furthermore update the round trip times accordingly
                 else {
                     for(int i = flow.firstNotRecievedPacketIndex; i < ackPacketID; ++i) {
-                        Integer newRoundTripTime =
-                                Main.currentTime - flow.sendTimes.get(i);
-                        // update minRoundTripTime
-                        flow.minRoundTripTime = Math.min(flow.minRoundTripTime, newRoundTripTime);
-                        // update avgRoundTripTime
-                        if (flow.avgRoundTripTime == null) {
-                            flow.avgRoundTripTime = newRoundTripTime * 1.0;
-                        } else {
-                            flow.avgRoundTripTime = flow.avgRoundTripTime * (1 - timeoutLengthCatchupFactor)
-                                    + newRoundTripTime * timeoutLengthCatchupFactor;
+                        if(flow.sendTimes.get(i) != null) {
+                            Integer newRoundTripTime = Main.currentTime - flow.sendTimes.get(i);
+                            // update minRoundTripTime
+                            flow.minRoundTripTime = Math.min(flow.minRoundTripTime, newRoundTripTime);
+                            // update avgRoundTripTime
+                            if (flow.avgRoundTripTime == null) {
+                                flow.avgRoundTripTime = newRoundTripTime * 1.0;
+                            } else {
+                                flow.avgRoundTripTime = flow.avgRoundTripTime * (1 - timeoutLengthCatchupFactor)
+                                        + newRoundTripTime * timeoutLengthCatchupFactor;
+                            }
+                            // update stdDevRoundTripTime
+                            if (flow.stdDevRoundTripTime == null) {
+                                flow.stdDevRoundTripTime = newRoundTripTime * 1.0;
+                            } else {
+                                flow.stdDevRoundTripTime = flow.stdDevRoundTripTime * (1 - timeoutLengthCatchupFactor)
+                                        + Math.abs(newRoundTripTime - flow.avgRoundTripTime) * timeoutLengthCatchupFactor;
+                            }
+                            flow.sendTimes.remove(i);
                         }
-                        // update stdDevRoundTripTime
-                        if (flow.stdDevRoundTripTime == null) {
-                            flow.stdDevRoundTripTime = newRoundTripTime * 1.0;
-                        } else {
-                            flow.stdDevRoundTripTime = flow.stdDevRoundTripTime * (1 - timeoutLengthCatchupFactor)
-                                    + Math.abs(newRoundTripTime - flow.avgRoundTripTime) * timeoutLengthCatchupFactor;
-                        }
-                        flow.sendTimes.remove(i);
                     }
                     flow.firstNotRecievedPacketIndex = ackPacketID;
                 }
