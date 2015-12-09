@@ -240,7 +240,7 @@ public class Link implements Updatable {
     public void update() {
 
         //Buffer Estimate
-        if(Main.currentTime % 300 == 0) {
+        if(Main.currentTime % 1000 == 900) {
 
             if(numbLeftPktsThruBuffer == 0)
                 latestLeftBufferDelayEstimate = 0.0;

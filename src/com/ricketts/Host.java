@@ -1,8 +1,5 @@
 package com.ricketts;
 
-import com.sun.tools.doclets.internal.toolkit.util.DocFinder;
-import com.sun.tools.javac.code.Type;
-
 import java.util.LinkedList;
 import java.util.ListIterator;
 import java.util.Set;
@@ -361,7 +358,7 @@ public class Host extends Node {
                 // Update RTO threshold to be 3 * average RTT
                 //flow.timeoutLength = 3 * flow.totalRoundTripTime / flow.numRtts;
                 flow.totalBitsSent += flow.currBitsSent;
-                if (flow.windowSize < 200 && flow.windowSize > 0) {
+                if (flow.windowSize > 0) {
                     flow.flowAnalyticsCollector.addToWindowSize(flow.windowSize, Main.currentTime);
                 }
                 // Average the flow rate over an interval of 100 ms

@@ -127,7 +127,7 @@ public class Router extends Node
      */
     public void update() {
 
-        if((routingTablesConverged && Main.currentTime % 3200 == 0) ||
+        if((routingTablesConverged && Main.currentTime % 4000 == 0) ||
                 (!routingTablesConverged && Main.currentTime % 100 == 0)) {
             for(Link link : links) {
                 Node otherEnd = link.getOtherEnd(this);
