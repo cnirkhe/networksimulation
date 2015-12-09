@@ -46,9 +46,8 @@ public class Flow {
     /**
      * A set of information on round trip times of packets
      */
-    public Integer minRoundTripTime;
-    public Double avgRoundTripTime;
-    public Double stdDevRoundTripTime;
+    public Integer totalRoundTripTime;
+    public Integer numRtts;
 
     /**
      * Bits sent within this update session
@@ -96,9 +95,8 @@ public class Flow {
         this.maxPacketID = packets.size() - 1;
         this.numberOfLatestACKIDRecieved = 0;
         this.sendTimes = new HashMap<>();
-        this.minRoundTripTime = Integer.MAX_VALUE;
-        this.avgRoundTripTime = 0.0;
-        this.stdDevRoundTripTime = 0.0;
+        this.totalRoundTripTime = 0;
+        this.numRtts = 0;
         this.currBitsSent = 0;
         this.partialWindowSize = 0;
         this.slowStart = true;
