@@ -48,7 +48,7 @@ public class Main {
                 InputParser ip = new InputParser();
                 ip.parseJSON(filename);
 
-                ArrayList<Link> links = ip.extractLinks(filenameSubstring);
+                ArrayList<Link> links = ip.extractLinks();
                 HashMap<Integer, Link> linkMap = InputParser.makeLinkMap(links);
 
                 // Get hosts and routers given links

@@ -9,6 +9,7 @@ import java.util.Queue;
 /**
  * The Link is unlike a physical Link. Instead think of a Link as the physical link plus the buffers on either end.
  * A link is defined as LEFT to RIGHT (the naming is arbitrary) but packets are sent in 1 direction at a time.
+ * Links are programmed FULL DUPLEX.
  */
 public class Link implements Updatable {
 
@@ -151,8 +152,8 @@ public class Link implements Updatable {
 
     /**
      * Returns the buffer delay estimate for the given direction
-     * @param direction
-     * @return
+     * @param direction direction packets are moving
+     * @return delay
      */
     private Double getBufferDelay(Direction direction) {
         if(direction == Direction.LEFT) {
@@ -166,7 +167,7 @@ public class Link implements Updatable {
     /**
      * If the node is connecting, gives the delay on its side of the link
      * @param node node adjacent to link
-     * @return
+     * @return delay
      */
     private Double getBufferDelay(Node node) {
         if(node == leftNode) {
@@ -180,7 +181,7 @@ public class Link implements Updatable {
     /**
      * Sum of buffer and link delay
      * @param node tells the side that its coming from
-     * @return
+     * @return sum delay
      */
     public Double getDelay(Node node) {
         return getLinkDelay() + getBufferDelay(node);
@@ -188,7 +189,7 @@ public class Link implements Updatable {
 
     /**
      * Returns the other end of the link if this node is one of them
-     * @param oneEnd
+     * @param oneEnd node of the link
      * @return the other end
      */
     public Node getOtherEnd(Node oneEnd) {
@@ -310,11 +311,20 @@ public class Link implements Updatable {
         Integer bitsAddedToLink = 0;
         Integer bitsAddableToLink = Main.intervalTime * this.linkRate;
 
+        /*
+         * Indicates if we should still be transmitting packets or not
+         */
         boolean transmitPackets = true;
+
+        /*
+         * If both of the left and right buffers have packets to send, then compare the latest packets and send accordingly
+         */
         while(transmitPackets && !this.leftPacketBuffer.isEmpty() && !this.rightPacketBuffer.isEmpty()) {
             if(leftPacketBuffer.peek().transmissionStartTime <= rightPacketBuffer.peek().transmissionStartTime &&
                     leftPacketBuffer.peek().packet.getSize() <= bitsAddableToLink - bitsAddedToLink) {
-                //Remove leftpacket and put onto transmitting
+
+                //Remove left packet and put onto transmitting
+
                 TransmittingPacket transmittingPacket = leftPacketBuffer.remove();
                 sumLeftBufferTime += Main.currentTime - transmittingPacket.transmissionStartTime;
                 numbLeftPktsThruBuffer++;
@@ -322,9 +332,13 @@ public class Link implements Updatable {
                 currentlyTransmittingPackets.add(transmittingPacket);
                 bitsAddedToLink += transmittingPacket.packet.getSize();
                 transmittingPacket.transmissionStartTime = Main.currentTime;
+
+
             } else if(leftPacketBuffer.peek().transmissionStartTime > rightPacketBuffer.peek().transmissionStartTime &&
-                    rightPacketBuffer.peek().packet.getSize() <= bitsAddableToLink - bitsAddedToLink){
-                //Remove rightpacket and put onto transmitting
+                    rightPacketBuffer.peek().packet.getSize() <= bitsAddableToLink - bitsAddedToLink) {
+
+                //Remove right packet and put onto transmitting
+
                 TransmittingPacket transmittingPacket = rightPacketBuffer.remove();
                 sumRightBufferTime += Main.currentTime - transmittingPacket.transmissionStartTime;
                 numbRightPktsThruBuffer++;
@@ -333,11 +347,14 @@ public class Link implements Updatable {
                 bitsAddedToLink += transmittingPacket.packet.getSize();
                 transmittingPacket.transmissionStartTime = Main.currentTime;
             } else {
-                //Move neither
+                //There is no space left so stop transmission
                 transmitPackets = false;
             }
         }
 
+        /*
+         * If only the left buffer has packets to send
+         */
         while(transmitPackets && !leftPacketBuffer.isEmpty()) {
             if(leftPacketBuffer.peek().packet.getSize() <= bitsAddableToLink - bitsAddedToLink) {
                 //Remove leftpacket and put onto transmitting
@@ -349,11 +366,14 @@ public class Link implements Updatable {
                 bitsAddedToLink += transmittingPacket.packet.getSize();
                 transmittingPacket.transmissionStartTime = Main.currentTime;
             } else {
-                //Don't move
+                //There is no space left so stop transmission
                 transmitPackets = false;
             }
         }
 
+        /*
+         * If only the left buffer has packets to send
+         */
         while(transmitPackets && !rightPacketBuffer.isEmpty()) {
             if(rightPacketBuffer.peek().packet.getSize() <= bitsAddableToLink - bitsAddedToLink) {
                 TransmittingPacket transmittingPacket = rightPacketBuffer.remove();
@@ -364,12 +384,12 @@ public class Link implements Updatable {
                 bitsAddedToLink += transmittingPacket.packet.getSize();
                 transmittingPacket.transmissionStartTime = Main.currentTime;
             } else {
-                //Don't move
+                //There is no space left so stop transmission
                 transmitPackets = false;
             }
         }
 
-        // Want rates per second
+        // Calculating buffer rate per second
         sumBufferCapacity += linkBufferSize - leftBufferRemainingCapacity;
         sumTotalBitsTransmitted += totalBitsTransmitted;
         linkAnalyticsCollector.addToPacketLoss(packetDrops, Main.currentTime);
@@ -383,9 +403,12 @@ public class Link implements Updatable {
             sumBufferCapacity = 0;
             sumTotalBitsTransmitted = 0;
         }
-        //packetDrops = 0;
     }
 
+    /**
+     * Generate graph data
+     * @return graph data
+     */
     public ArrayList<XYSeries> getDatasets() {
         return linkAnalyticsCollector.getDatasets();
     }

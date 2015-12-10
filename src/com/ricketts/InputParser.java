@@ -78,7 +78,7 @@ public class InputParser {
      * Using the JSON definition, produce ArrayList of Links
      * @return ArrayList of Links
      */
-    public ArrayList<Link> extractLinks(String filename) {
+    public ArrayList<Link> extractLinks() {
         ArrayList<Link> output = new ArrayList<>();
         try {
             JSONArray linkArray = jsonObject.getJSONObject("network").getJSONArray("links");
@@ -101,6 +101,7 @@ public class InputParser {
     /**
      * Given a HashMap of Link Ids to Links and the JSON definition, extract information about the Hosts
      * @param linkMap HashMap of Link Ids to Links
+     * @param protocol the tcp protocol
      * @return ArrayList of Hosts
      */
     public ArrayList<Host> extractHosts(HashMap<Integer, Link> linkMap, int protocol) {
