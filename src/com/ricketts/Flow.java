@@ -15,7 +15,7 @@ public class Flow {
      * The Starting Window Size and what we drop to at an RTO
      */
     public final static Integer initWindowSize = 1;
-    public final static Integer timeoutLength = 1000;
+    public final static Integer timeoutLength = 600;
 
     public Integer windowSize;
 
