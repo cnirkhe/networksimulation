@@ -12,11 +12,18 @@ import java.util.*;
 public class Flow {
 
     /**
-     * The Starting Window Size and what we drop to at an RTO
+     * The starting window size and what we drop to at an RTO
      */
     public final static Integer initWindowSize = 1;
+    
+    /**
+     * The time after transmission until a packet is considered dropped if an ACK is not received
+     */
     public final static Integer timeoutLength = 1000;
 
+    /**
+     * The current window size for the Flow
+     */
     public Integer windowSize;
 
     /**
@@ -27,32 +34,52 @@ public class Flow {
      */
     public Integer partialWindowSize;
 
+    /**
+     * The ID of the last packet in the flow
+     */
     public Integer lastPacketID;
+
     /**
      * Indicates whether or not we're in the slow start phase.
      */
     public boolean slowStart;
+
     /**
      * Indicates whether or not we're waiting for a retransmit.
      */
     public boolean awaitingRetransmit;
 
+    /**
+     * The threshold after which the slow-start algorithm switches to linear growth
+     */
     public int slowStartThreshold;
+
     /**
      * Monotonically increasing count of how many times we have recieved an ACK of ID = the largest ACK ID recieved yet
      * If this is 3, we go into retransmitting
      */
     public Integer numberOfLatestACKIDRecieved;
+
     /**
      * Packets to be sent in this flow
      */
     public ArrayList<DataPacket> packets;
+
+    /**
+     * The ID of the most recently received valid ACK packet in this flow
+     */
     public int mostRecentRetransmittedPacketID;
+
+    /**
+     * The ID of the most recently sent data packet in this flow
+     */
     public int mostRecentQueuedID;
+
     /**
      * The number of packets in the window
      */
     public int numbPacketsInWindow;
+
     /**
      * A Hashmap of PacketID to the sendTime of that packet (in milliseconds)
      * Used to keep track of dropped packets
@@ -68,24 +95,52 @@ public class Flow {
      * Sum of roundtrip times, used for averaging.
      */
     public Integer totalRoundTripTime;
+
     /**
      * Used for averaging.
      */
     public Integer numbRoundTrips;
 
+    /**
+     * The minimum round trip time between the source and destination for the flow
+     */
     public Integer minRoundTripTime;
+
+    /**
+     * The average round trip time between the source and desination for the flow
+     */
     public Double avgRoundTripTime;
 
     /**
      * Bits sent within this update session
      */
     public Integer currBitsSent;
+
+    /**
+     * The total number bits sent for this flow
+     */
     public Integer totalBitsSent;
 
+    /**
+     * The ID of the flow
+     */
     private Integer id;
+
+    /**
+     * The source host of this flow
+     */
     private Host source;
+
+    /**
+     * The destination host of this flow
+     */
     private Host destination;
+
+    /**
+     * ATracks analytics data for this flow
+     */
     public FlowAnalyticsCollector flowAnalyticsCollector;
+
     /**
      * dataSize is measured in bits. Total data sent over all packets.
      */
@@ -106,6 +161,15 @@ public class Flow {
      */
     public boolean activated;
 
+    /**
+     * Construct a flow with the given set of properties.
+     * @param id id of the flow
+     * @param source source host of the flow
+     * @param destination destination host of the flow
+     * @param dataSize amount of data to send in this flow
+     * @param startTime starting time of the flow
+     * @param protocol network protocol type of the flow
+     */
     public Flow(Integer id, Host source, Host destination, Integer dataSize, Integer startTime, int protocol) {
         this.id = id;
         this.source = source;
@@ -120,7 +184,7 @@ public class Flow {
     }
 
     /**
-     * Initialize flow for sending packets
+     * Initialize flow for sending packets.
      */
     public void activateFlow() {
         this.activated = true;
@@ -147,9 +211,7 @@ public class Flow {
     public Host getSource() { return this.source; }
     public Host getDestination() { return this.destination; }
     public Integer getID() { return this.id; }
-    public Integer getStartTime() {
-        return startTime;
-    }
+    public Integer getStartTime() { return this.startTime; }
 
     /**
      * This method generates a LinkedList of DataPackets corresponding to the size of data of the flow.
