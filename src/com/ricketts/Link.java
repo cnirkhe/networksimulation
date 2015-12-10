@@ -12,8 +12,6 @@ import java.util.Queue;
  */
 public class Link implements Updatable {
 
-    private Integer timeSinceReBufferDelay;
-
     /**
      * Orientations for Packets flowing on the link
      */
@@ -31,25 +29,28 @@ public class Link implements Updatable {
     /**
      * Link buffer in bits
      */
-    private final Integer linkBuffer;
+    private final Integer linkBufferSize;
 
     private Node leftNode, rightNode;
 
-    private Integer numbLeftPktsThruBuffer;
-    private Integer numbRightPktsThruBuffer;
+    /**
+     * Used to calculate average buffer delay
+     */
+    private Integer numbLeftPktsThruBuffer, numbRightPktsThruBuffer;
 
-    private Double sumLeftBufferTime;
-    private Double sumRightBufferTime;
+    /**
+     * Used to calculate average buffer delay
+     */
+    private Double sumLeftBufferTime, sumRightBufferTime;
 
-    private Double latestLeftBufferDelayEstimate;
-    private Double latestRightBufferDelayEstimate;
+    private Double latestLeftBufferDelayEstimate, latestRightBufferDelayEstimate;
 
     /**
      * Packet drops for current interval
      */
     private Integer packetDrops;
-    private LinkAnalyticsCollector linkAnalyticsCollector;
 
+    private LinkAnalyticsCollector linkAnalyticsCollector;
     /**
      * Indicator for whether or not we should graph this link
      */
@@ -81,7 +82,7 @@ public class Link implements Updatable {
     private Integer leftBufferRemainingCapacity, rightBufferRemainingCapacity;
 
     /**
-     * Packet currently being transmitted
+     * Packet currently being transmitted ordered by time entered in transmission
      */
     private Queue<TransmittingPacket> currentlyTransmittingPackets;
 
@@ -94,22 +95,29 @@ public class Link implements Updatable {
      * Total buffer capacity and link rate over an interval so we can average for analytics.
      */
     private Integer sumTotalBitsTransmitted;
+    /**
+     * Total buffer capacity over the interval that buffer capacity is being averaged over.
+     */
     private Integer sumBufferCapacity;
 
     /**
-     * Constructor without nodes defined
+     * initializes the link as empty and initializes all the analytics variables
+     * @param linkID linkID
+     * @param linkRate linkRate
+     * @param linkDelay linkDelay
+     * @param linkBufferSize linkBufferSize
+     * @param graph whether to graph or not
      */
-    public Link(Integer linkID, Integer linkRate, Integer linkDelay, Integer linkBuffer, String name,
-                boolean graph) {
+    public Link(Integer linkID, Integer linkRate, Integer linkDelay, Integer linkBufferSize, boolean graph) {
         this.linkID = linkID;
         this.linkRate = linkRate;
         this.linkDelay = linkDelay;
-        this.linkBuffer = linkBuffer;
+        this.linkBufferSize = linkBufferSize;
 
         this.leftPacketBuffer = new LinkedList<>();
         this.rightPacketBuffer = new LinkedList<>();
-        this.leftBufferRemainingCapacity = linkBuffer;
-        this.rightBufferRemainingCapacity = linkBuffer;
+        this.leftBufferRemainingCapacity = linkBufferSize;
+        this.rightBufferRemainingCapacity = linkBufferSize;
         this.packetDrops = 0;
         this.totalBitsTransmitted = 0;
         this.linkAnalyticsCollector = new LinkAnalyticsCollector(linkID);
@@ -118,19 +126,20 @@ public class Link implements Updatable {
         this.graph = graph;
 
         initializeBufferDelayEstimate();
+        latestLeftBufferDelayEstimate = 0.0;
+        latestRightBufferDelayEstimate = 0.0;
 
         currentlyTransmittingPackets = new LinkedList<>();
     }
 
-    public void initializeBufferDelayEstimate() {
+    /**
+     * Initializes the variables for buffer delay estimation
+     */
+    private void initializeBufferDelayEstimate() {
         numbLeftPktsThruBuffer = 0;
         numbRightPktsThruBuffer = 0;
         sumLeftBufferTime = 0.0;
         sumRightBufferTime = 0.0;
-        timeSinceReBufferDelay = 0;
-
-        latestLeftBufferDelayEstimate = 0.0;
-        latestRightBufferDelayEstimate = 0.0;
     }
 
     public Integer getID() { return this.linkID; }
@@ -140,8 +149,12 @@ public class Link implements Updatable {
     public void setLeftNode(Node node) { this.leftNode = node; }
     public void setRightNode(Node node) { this.rightNode = node; }
 
-
-    public Double getBufferDelay(Direction direction) {
+    /**
+     * Returns the buffer delay estimate for the given direction
+     * @param direction
+     * @return
+     */
+    private Double getBufferDelay(Direction direction) {
         if(direction == Direction.LEFT) {
             return latestLeftBufferDelayEstimate;
         }
@@ -149,6 +162,12 @@ public class Link implements Updatable {
             return latestRightBufferDelayEstimate;
         }
     }
+
+    /**
+     * If the node is connecting, gives the delay on its side of the link
+     * @param node node adjacent to link
+     * @return
+     */
     private Double getBufferDelay(Node node) {
         if(node == leftNode) {
             return getBufferDelay(Direction.LEFT);
@@ -157,10 +176,21 @@ public class Link implements Updatable {
         } else
             return 0.0;
     }
+
+    /**
+     * Sum of buffer and link delay
+     * @param node tells the side that its coming from
+     * @return
+     */
     public Double getDelay(Node node) {
-        //return getLinkDelay().doubleValue();
         return getLinkDelay() + getBufferDelay(node);
     }
+
+    /**
+     * Returns the other end of the link if this node is one of them
+     * @param oneEnd
+     * @return the other end
+     */
     public Node getOtherEnd(Node oneEnd) {
         if (oneEnd == leftNode) {
             return rightNode;
@@ -218,11 +248,11 @@ public class Link implements Updatable {
         // We want to clear the buffer we're sending from
         if (sendingNode == leftNode) {
             leftPacketBuffer.clear();
-            leftBufferRemainingCapacity = linkBuffer;
+            leftBufferRemainingCapacity = linkBufferSize;
         }
         else if (sendingNode == rightNode) {
             rightPacketBuffer.clear();
-            rightBufferRemainingCapacity = linkBuffer;
+            rightBufferRemainingCapacity = linkBufferSize;
         }
         else {
             System.out.println("Something went terribly wrong");
@@ -231,9 +261,10 @@ public class Link implements Updatable {
 
     /**
      * Updates the state of the Link. This involves any of the following:
-     * (a) Updating the state of packets currently in transmission
-     * (b) Removing transmitted packets
-     * (c) Adding packets to the link from the link buffer
+     * Calculate the buffer delay (periodically)
+     * Updating the state of packets currently in transmission
+     * Removing transmitted packets
+     * Adding packets to the link from the link buffer
      */
     public void update() {
 
@@ -250,15 +281,16 @@ public class Link implements Updatable {
             else
                 latestRightBufferDelayEstimate = sumRightBufferTime / numbRightPktsThruBuffer;
 
-            numbLeftPktsThruBuffer = 0;
-            numbRightPktsThruBuffer = 0;
-            sumLeftBufferTime = 0.0;
-            sumRightBufferTime = 0.0;
+            initializeBufferDelayEstimate();
         }
 
-        // Reset total bits transmitted for new interval
+        // Reset total bits transmitted for the current interval
         totalBitsTransmitted = 0;
 
+        /*
+         * If we have packets that are in transmission but should have reached the other end by now,
+         * send them along their way
+         */
         while(!currentlyTransmittingPackets.isEmpty() &&
                 Main.currentTime >= currentlyTransmittingPackets.peek().transmissionStartTime + linkDelay ) {
             //remove the packet
@@ -272,6 +304,9 @@ public class Link implements Updatable {
             }
         }
 
+        /*
+         * Calculate how many bits can be added to the link in this interval and then add them accordingly
+         */
         Integer bitsAddedToLink = 0;
         Integer bitsAddableToLink = Main.intervalTime * this.linkRate;
 
@@ -335,7 +370,7 @@ public class Link implements Updatable {
         }
 
         // Want rates per second
-        sumBufferCapacity += linkBuffer - leftBufferRemainingCapacity;
+        sumBufferCapacity += linkBufferSize - leftBufferRemainingCapacity;
         sumTotalBitsTransmitted += totalBitsTransmitted;
         linkAnalyticsCollector.addToPacketLoss(packetDrops, Main.currentTime);
         // Want link rates in Mbps

@@ -90,7 +90,7 @@ public class InputParser {
                 int buffer = linkJson.getInt("bufferSize") * 8192;
                 // Indicator saying whether or not we should graph this link
                 boolean graph = linkJson.getBoolean("graph");
-                output.add(new Link(id, capacity, transmissionDelay, buffer, filename, graph));
+                output.add(new Link(id, capacity, transmissionDelay, buffer, graph));
             }
         } catch (JSONException e) {
             System.out.println(e);
