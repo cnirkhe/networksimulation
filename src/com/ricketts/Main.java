@@ -83,8 +83,6 @@ public class Main {
 
                 // In every interval, update the Updatables (Hosts, Routers, Flows).
                 for (; currentTime < ip.extractRuntime(); currentTime += intervalTime) {
-                    if (currentTime % 100 == 0)
-                        System.out.println();
                     for (Updatable u : updatableLinkedList) {
                         u.update();
                     }

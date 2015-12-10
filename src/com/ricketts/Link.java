@@ -184,7 +184,6 @@ public class Link implements Updatable {
         if (sendingNode == leftNode) {
             // Check if it fits in the buffer
             newRemainingCapacity = leftBufferRemainingCapacity - packet.getSize();
-            System.out.println(newRemainingCapacity);
             if (newRemainingCapacity >= 0) {
                 // If so, add it and update the remaining capacity
                 leftPacketBuffer.add(new TransmittingPacket(packet, Direction.RIGHT, Main.currentTime));
