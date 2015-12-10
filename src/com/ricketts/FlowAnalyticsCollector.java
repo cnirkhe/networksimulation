@@ -9,10 +9,16 @@ import java.util.ArrayList;
  */
 public class FlowAnalyticsCollector {
     /**
-     * Series for flow rate, window size, and packet delay.
+     * Series for flow rate over time.
      */
     private XYSeries flowRates;
+    /**
+     * Series for window size over time.
+     */
     private XYSeries windowSizes;
+    /**
+     * Series for packet delay over time.
+     */
     private XYSeries packetDelays;
 
     /**

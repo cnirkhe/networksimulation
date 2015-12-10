@@ -10,9 +10,12 @@ import java.util.HashMap;
  */
 public class Main {
     /**
-     * Set the initial time and interval time which will be updated as the simulation progresses.
+     * Set the initial time which will be updated as the simulation progresses.
      */
     public static int currentTime = 0;
+    /**
+     * Set the interval rate we update at.
+     */
     public static final int intervalTime = 1;
 
     /**
@@ -25,12 +28,12 @@ public class Main {
 
     /**
      * Run the simulation!!!!!
-     * @param args
+     * @param args Args
      */
     public static void main(String[] args) {
         ArrayList<String> fileList = new ArrayList<>();
-        fileList.add("h0.json");
-        fileList.add("h1.json");
+        fileList.add("t0.json");
+        fileList.add("t1.json");
         fileList.add("t2.json");
 
         ArrayList<Integer> protocols = new ArrayList<>();
@@ -80,7 +83,6 @@ public class Main {
 
                 // In every interval, update the Updatables (Hosts, Routers, Flows).
                 for (; currentTime < ip.extractRuntime(); currentTime += intervalTime) {
-                    System.out.println("Time is currently: " + currentTime);
                     if (currentTime % 100 == 0)
                         System.out.println();
                     for (Updatable u : updatableLinkedList) {
