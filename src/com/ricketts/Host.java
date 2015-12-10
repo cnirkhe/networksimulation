@@ -154,7 +154,7 @@ public class Host extends Node {
                 }
                 // Increment the firstNOTACKedPacketIndex to 1 past the ack that was just recieved
                 //Furthermore update the round trip times accordingly
-                else {
+                if(!flow.firstNotRecievedPacketIndex.equals(flow.lastPacketID)) {
                     for(int i = flow.firstNotRecievedPacketIndex; i < ackPacketID; ++i) {
                         // flow.sendTimes.get(i) will be null if we clear all the send times in a rto.
                         if(flow.sendTimes.get(i) != null) {
