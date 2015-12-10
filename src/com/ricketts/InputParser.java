@@ -181,7 +181,7 @@ public class InputParser {
                 // Convert data amount from MB to bits.
                 int dataAmount = flowJson.getInt("dataAmount") * 8388608;
                 int startTime = flowJson.getInt("startTime");
-                output.add(new Flow(id, source, destination, dataAmount, startTime, protocol));
+                output.add(new Flow(id, source, destination, dataAmount, startTime));
             }
         } catch (JSONException e) {
             System.out.println(e);
