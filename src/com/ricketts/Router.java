@@ -21,11 +21,11 @@ public class Router extends Node
      */
     private final ArrayList<Link> links;
     /**
-     * The set of Packets To send to each of the respective Links. Link -> Queue of Packets to Send
+     * The set of Packets To send to each of the respective Links. HashMap: Link maps to Queue of Packets to Send
      */
     private HashMap<Link, Deque<Packet>> packetsToSend;
     /**
-     * This is the representation of the current routing table. It is a map destination -> (Distance, Optimal Link to Use)
+     * This is the representation of the current routing table. It is a HashMap: destination maps to (Distance, Optimal Link to Use)
      * The current routing table is the one that is used to make decisions at the moment. It is updated periodically with
      * the next routing table.
      */

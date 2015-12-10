@@ -8,11 +8,24 @@ import java.util.Set;
  * A Host is a Node meant to simulate a source or sink of data. Hosts have only one Link. Flows begin at Hosts.
  */
 public class Host extends Node {
-
+    /**
+     * Interval for updating window size when using TCP Fast. Measured in milliseconds
+     */
     private final static Integer TCPFastUpdateInterval = 100;
+    /**
+     * Alpha value used in window size update for TCP Fast. This value modulates convergence behavior (i.e. convergence
+     * rate, convergence point, oscillation behavior around convergence point, etc).
+     */
     private final static Double TCPFastAlpha = 40.0;
+    /**
+     * Weight used in any weighted average performed in this Host. Used like:
+     * new_avg = new_element * catchupFactor + old_avg * (1 - catchupFactor)
+     */
     private final static Double catchupFactor = .1;
 
+    /**
+     * Link that Host is connected to
+     */
     private Link link;
 
     /**
@@ -22,13 +35,16 @@ public class Host extends Node {
     private LinkedList<Packet> immediatePacketsToSend;
 
     /**
-     * Downloads indexed by Source Host
+     * Download coming into current Host
      */
     private Download download;
+    /**
+     * Flow going out from current Host
+     */
     private Flow flow;
 
     /**
-     * Protocol we're using
+     * Protocol used by Host
      */
     private int protocol;
 
@@ -37,7 +53,9 @@ public class Host extends Node {
      * As we are only simulating, no track of the actual packets is kept, just the packetIds
      */
     private class Download {
-
+        /**
+         * Host that the Download data is coming from
+         */
         public Host source;
         /**
          * Last packet ID in the download
@@ -48,6 +66,12 @@ public class Host extends Node {
          * */
         public Integer nextPacketID;
 
+        /**
+         * Construct a Download instance from source and a range of PacketIDs
+         * @param source the source Host that the download data is coming from
+         * @param minPacketID min of the PacketID range
+         * @param maxPacketID max of the PacketID range
+         */
         public Download(Host source, Integer minPacketID, Integer maxPacketID) {
             this.source = source;
             this.nextPacketID = minPacketID;
@@ -56,7 +80,13 @@ public class Host extends Node {
     }
 
     /**
-     * Complete Constructor
+     * Construct a Host from address, link, immediatePacketsToSend, flow, download and protocol
+     * @param address network address of the new Host
+     * @param link link that the new Host is connected to
+     * @param immediatePacketsToSend packets to send as soon as possible after construction
+     * @param flow flow going out of the new Host
+     * @param download download coming into the new Host
+     * @param protocol TCP protocol used by the new Host
      */
     public Host(String address, Link link, LinkedList<Packet> immediatePacketsToSend, Flow flow, Download download, int protocol) {
         super(address);
@@ -68,7 +98,10 @@ public class Host extends Node {
     }
 
     /**
-     * Construct a Host from a link
+     * Construct a Host from address, link and protocol
+     * @param address network address of the new Host
+     * @param link link that the new Host is connected to
+     * @param protocol TCP protocol used by the new Host
      */
     public Host(String address, Link link, int protocol) {
         this(address, link, new LinkedList<Packet>(), null, null, protocol);
@@ -92,20 +125,19 @@ public class Host extends Node {
      * @param ackPacket the ACK received
      */
     private void receiveACKPacket(ACKPacket ackPacket) {
-        System.out.println("ACK packet " + ackPacket.getID() + " received at host " + address + " at time " + Main.currentTime);
         Integer ackPacketID = ackPacket.getID();
         //Check to make sure the source of the ACK is from one which we are sending flows to
         if(flow != null && flow.activated) {
             // If the ACK is for a new packet, we know the destination has
             // received packets at least up to that one
             if (ackPacketID > flow.firstNotRecievedPacketIndex) {
-                flow.windowOccupied--;
+                flow.numbPacketsInWindow--;
                 flow.numberOfLatestACKIDRecieved = 0;
                 if (protocol == Main.Protocol.RENO) {
                     if (flow.slowStart) {
                         // If we're in slow start & Reno, cwnd <- cwnd + 1
                         flow.windowSize++;
-                        if (flow.windowSize > flow.ssthresh) {
+                        if (flow.windowSize > flow.slowStartThreshold) {
                             flow.slowStart = false;
                         }
                     }
@@ -119,10 +151,6 @@ public class Host extends Node {
                             flow.partialWindowSize = 0;
                         }
                     }
-                }
-                // If that was the last ACK, discard the flow
-                if (flow.firstNotRecievedPacketIndex.equals(flow.maxPacketID)) {
-                    System.out.println("flow finished. gg no re");
                 }
                 // Increment the firstNOTACKedPacketIndex to 1 past the ack that was just recieved
                 //Furthermore update the round trip times accordingly
@@ -143,7 +171,7 @@ public class Host extends Node {
                                 flow.avgRoundTripTime = flow.avgRoundTripTime * (1 - catchupFactor)
                                         + rtt * catchupFactor;
                             }
-                            flow.numRtts++;
+                            flow.numbRoundTrips++;
                             flow.sendTimes.remove(i);
                         }
                     }
@@ -159,37 +187,34 @@ public class Host extends Node {
                 // If this packet has been ACKed three or more time, assume
                 // it's been dropped and retransmit (TCP FAST)
 
-                //TODO QUESTION @ ELAINE
-                //TODO why keep track of flow.mostRecentRetransmittedPacket?
-                if (flow.numberOfLatestACKIDRecieved >= 3 && flow.mostRecentRetransmittedPacket != ackPacketID) {
+                if (flow.numberOfLatestACKIDRecieved >= 3 && flow.mostRecentRetransmittedPacketID != ackPacketID) {
                     if (protocol != Main.Protocol.RENO || !flow.slowStart) {
-                        flow.mostRecentRetransmittedPacket = ackPacketID;
+                        flow.mostRecentRetransmittedPacketID = ackPacketID;
                         DataPacket packet = flow.packets.get(flow.firstNotRecievedPacketIndex);
                         flow.sendTimes.put(flow.firstNotRecievedPacketIndex, Main.currentTime);
                         this.link.clearBuffer(this);
                         this.link.addPacket(packet, this);
-                        System.out.println("FASTRETransmission of Packet " + packet.getID() + " at time " + Main.currentTime);
                         flow.currBitsSent += packet.getSize();
                         // Since we haven't found a RTT for the retransmitted packets, assume the RTT is
                         // RTO * 1.2.
                         flow.totalRoundTripTime += (int) (flow.timeoutLength * 1.2);
-                        flow.numRtts += 1;
+                        flow.numbRoundTrips += 1;
                         // Since everything we sent won't go through, reset the window size occupied to
                         // 1 (since we just retransmitted a packet).
-                        flow.windowOccupied = 1;
-                        flow.mostRecentQueued = packet.getID();
+                        flow.numbPacketsInWindow = 1;
+                        flow.mostRecentQueuedID = packet.getID();
                         if (protocol == Main.Protocol.RENO && !flow.awaitingRetransmit) {
                             // Enter FR/FR.
                             if (flow.windowSize / 2 < 2) {
-                                flow.ssthresh = 2;
+                                flow.slowStartThreshold = 2;
                             } else {
-                                flow.ssthresh = flow.windowSize / 2;
+                                flow.slowStartThreshold = flow.windowSize / 2;
                             }
                             // Wait for packet retransmit, at that point we will deflate the
                             // window.
                             flow.awaitingRetransmit = true;
-                            // cwnd <- ssthresh + ndup (temp window inflation)
-                            flow.windowSize = flow.ssthresh + flow.numberOfLatestACKIDRecieved;
+                            // cwnd <- slowStartThreshold + ndup (temp window inflation)
+                            flow.windowSize = flow.slowStartThreshold + flow.numberOfLatestACKIDRecieved;
                             flow.slowStart = false;
                         }
                         flow.numberOfLatestACKIDRecieved = 0;
@@ -212,7 +237,6 @@ public class Host extends Node {
      * @param packet The Setup packet
      */
     private void receiveDataPacket(DataPacket packet) {
-        System.out.println("Data packet " + packet.getID() + " received at host " + address + " at time " + Main.currentTime);
         Integer packetID = packet.getID();
         if (download != null && download.source == packet.getSource()) {
             if (download.nextPacketID <= packetID && packetID <= download.maxPacketID) {
@@ -252,8 +276,7 @@ public class Host extends Node {
         //Activate the flow if the time is ready
         if(flow != null && flow.getStartTime() <= Main.currentTime && flow.activated == false) {
             flow.activateFlow();
-            this.immediatePacketsToSend.add(new SetupPacket(0, this, flow.getDestination(), flow.maxPacketID));
-            System.out.println("Regular Transmission of Setup Packet at time " + Main.currentTime);
+            this.immediatePacketsToSend.add(new SetupPacket(0, this, flow.getDestination(), flow.lastPacketID));
         }
 
         // If this host is connected
@@ -285,9 +308,9 @@ public class Host extends Node {
                 if(minTimedOutPacketID != Integer.MAX_VALUE) {
                     if (protocol == Main.Protocol.RENO) {
                         if (flow.windowSize / 2 < 2) {
-                            flow.ssthresh = 2;
+                            flow.slowStartThreshold = 2;
                         } else {
-                            flow.ssthresh = flow.windowSize / 2;
+                            flow.slowStartThreshold = flow.windowSize / 2;
                         }
                         flow.slowStart = true;
                         flow.windowSize = Flow.initWindowSize;
@@ -295,37 +318,35 @@ public class Host extends Node {
                     // Since we haven't found a RTT for the retransmitted packets, assume the RTT is
                     // RTO * 1.2 for all packets currently queued.
                     flow.totalRoundTripTime += (int) (flow.timeoutLength * 1.2);
-                    flow.numRtts += 1;
+                    flow.numbRoundTrips += 1;
                     flow.sendTimes.clear();
                     flow.sendTimes.put(minTimedOutPacketID, Main.currentTime);
-                    flow.windowOccupied = 1;
-                    flow.mostRecentQueued = minTimedOutPacketID;
+                    flow.numbPacketsInWindow = 1;
+                    flow.mostRecentQueuedID = minTimedOutPacketID;
                     link.clearBuffer(this);
                     DataPacket packetToResend = flow.packets.get(minTimedOutPacketID);
                     this.link.addPacket(packetToResend, this);
-                    System.out.println("RETransmission of Packet " + packetToResend.getID() + " at time " + Main.currentTime);
                     flow.currBitsSent += packetToResend.getSize();
                 }
 
                 // Packets are ACKed sequentially, so the outstanding
-                // packets are just the ones from mostRecentQueued onwards. Thus
+                // packets are just the ones from mostRecentQueuedID onwards. Thus
                 // we can jump past them and fill up the rest of the window.
-                int next = flow.mostRecentQueued + 1;
+                int next = flow.mostRecentQueuedID + 1;
                 if(flow.packets.size() > next) {
                     ListIterator<DataPacket> it = flow.packets.listIterator(next);
                     if (it.hasNext()) {
                         DataPacket packet = it.next();
-                        while (flow.windowSize > flow.windowOccupied) {
+                        while (flow.windowSize > flow.numbPacketsInWindow) {
                             // If we're in FR/FR and we're retransmitting, we need to deflate the window.
                             if (protocol == Main.Protocol.RENO && flow.awaitingRetransmit) {
-                                flow.windowSize = flow.ssthresh;
+                                flow.windowSize = flow.slowStartThreshold;
                                 flow.awaitingRetransmit = false;
                             }
-                            flow.windowOccupied++;
+                            flow.numbPacketsInWindow++;
                             this.link.addPacket(packet, this);
-                            System.out.println("Regular Transmission of Packet " + packet.getID() + " at time " + Main.currentTime);
                             flow.sendTimes.put(packet.getID(), Main.currentTime);
-                            flow.mostRecentQueued = packet.getID();
+                            flow.mostRecentQueuedID = packet.getID();
                             flow.currBitsSent += packet.getSize();
                             if (it.hasNext())
                                 packet = it.next();
@@ -352,11 +373,11 @@ public class Host extends Node {
                     }
                 }
                 // Handle RTT divide by 0 error
-                if (flow.numRtts == 0) {
-                    flow.numRtts = 1;
+                if (flow.numbRoundTrips == 0) {
+                    flow.numbRoundTrips = 1;
                 }
                 // Update RTO threshold to be 3 * average RTT
-                //flow.timeoutLength = 3 * flow.totalRoundTripTime / flow.numRtts;
+                //flow.timeoutLength = 3 * flow.totalRoundTripTime / flow.numbRoundTrips;
                 flow.totalBitsSent += flow.currBitsSent;
                 if (flow.windowSize > 0) {
                     flow.flowAnalyticsCollector.addToWindowSize(flow.windowSize, Main.currentTime);
@@ -368,7 +389,7 @@ public class Host extends Node {
                     flow.totalBitsSent = 0;
                 }
                 flow.totalRoundTripTime = 0;
-                flow.numRtts = 0;
+                flow.numbRoundTrips = 0;
             }
         }
     }
