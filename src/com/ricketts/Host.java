@@ -127,7 +127,7 @@ public class Host extends Node {
     private void receiveACKPacket(ACKPacket ackPacket) {
         Integer ackPacketID = ackPacket.getID();
         //Check to make sure the source of the ACK is from one which we are sending flows to
-        if(flow != null && flow.activated) {
+        if (flow != null && flow.activated) {
             // If the ACK is for a new packet, we know the destination has
             // received packets at least up to that one
             if (ackPacketID > flow.firstNotRecievedPacketIndex) {

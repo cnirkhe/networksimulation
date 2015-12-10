@@ -3,12 +3,17 @@ package com.ricketts;
 /**
  * An abstract class to represent both Routers and Hosts.
  */
-public abstract class Node implements Updatable
-{
+public abstract class Node implements Updatable {
+    /**
+     * The network location of the Node. Hosts have full addresses, Routers are given subnets.
+     */
     protected final String address;
 
-    public Node(String address)
-    {
+    /**
+     * Construct a Node with a given address.
+     * @param address address of the Node
+     */
+    public Node(String address) {
         this.address = address;
     }
 

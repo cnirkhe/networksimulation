@@ -12,6 +12,12 @@ public class RoutingTablePacket extends Packet {
 
     private HashMap<Node, Pair<Double, Link>> routingTable;
 
+    /**
+     * Create a RoutingTablePacket
+     * @param source Where the packet is coming from
+     * @param destination Where the packet is going
+     * @param routingTable What the packet currently thinks the routing table is
+     */
     public RoutingTablePacket(Node source, Node destination, HashMap<Node, Pair<Double, Link>> routingTable) {
         super(0, calculateTableSize(routingTable) ,source, destination);
         this.routingTable = routingTable;
